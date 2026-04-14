@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Garde Élise & Pierre</title>
+    <title>Garde Pierre & Élise</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -25,6 +25,32 @@
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
         body{margin:0;background:#e5e5ea;display:flex;justify-content:center}
         .app{width:100%;max-width:450px;background:var(--app-bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:calc(75px + var(--safe))}
+
+        /* ── SPLASH SCREEN ── */
+        .splash{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:450px;height:100vh;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;transition:opacity .6s ease,transform .6s ease}
+        .splash.gone{opacity:0;transform:translateX(-50%) scale(1.05);pointer-events:none}
+        .splash-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1s ease}
+        .splash-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(26,26,46,.9) 0%,rgba(75,0,130,.6) 50%,rgba(52,199,89,.3) 100%)}
+        .splash-content{position:relative;z-index:2;text-align:center;animation:splashIn .8s ease both}
+        .splash-emoji{font-size:60px;margin-bottom:16px;animation:splashBounce 1s ease .3s both}
+        .splash-title{font-size:34px;font-weight:800;color:#fff;letter-spacing:-.5px;line-height:1.15;margin-bottom:8px;text-shadow:0 2px 20px rgba(0,0,0,.4)}
+        .splash-sub{font-size:15px;color:rgba(255,255,255,.7);font-weight:500;letter-spacing:.5px}
+        .splash-dots{display:flex;gap:6px;margin-top:28px;justify-content:center}
+        .splash-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);animation:dotPulse 1.2s ease infinite}
+        .splash-dot:nth-child(2){animation-delay:.2s}
+        .splash-dot:nth-child(3){animation-delay:.4s}
+        @keyframes splashIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes splashBounce{0%{opacity:0;transform:scale(.3)}50%{transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+        @keyframes dotPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+        /* ── PHOTO BANNER ── */
+        .photo-banner{width:calc(100% + 40px);margin:-20px -20px 20px -20px;height:200px;border-radius:0 0 20px 20px;overflow:hidden;position:relative;background:#2c2c3a}
+        .photo-banner img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease}
+        .photo-banner img.loaded{opacity:1}
+        .photo-banner .photo-gradient{position:absolute;inset:0;background:linear-gradient(to top,var(--app-bg) 0%,transparent 50%)}
+        .photo-banner .photo-title{position:absolute;bottom:14px;left:20px;right:20px;font-size:22px;font-weight:700;color:var(--text);text-shadow:0 1px 8px rgba(0,0,0,.15)}
+        .photo-banner .no-photo{display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);font-size:50px}
+
         .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:450px;height:calc(55px + var(--safe));background:var(--tab-bg);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border-top:.5px solid var(--border);display:flex;padding-bottom:var(--safe);z-index:999}
         .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:10px;font-weight:500;cursor:pointer}
         .tab.on{color:var(--maman)} .tab-icon{font-size:22px;margin-bottom:2px}
@@ -87,7 +113,7 @@
         .print-header{display:none;text-align:center;font-size:24px;font-weight:bold;margin-bottom:20px}
         @media print{
             *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-            .tabbar,.btn,.seg-ctrl,.cal-nav button,h1,.version-tag,.sync-info,.hero,.export-section{display:none!important}
+            .tabbar,.btn,.seg-ctrl,.cal-nav button,h1,.version-tag,.sync-info,.hero,.export-section,.photo-banner,.splash{display:none!important}
             body,.app{background:white!important;box-shadow:none!important;padding:0!important;color:black!important}
             .view{display:none!important;padding:0!important}.view.on{display:block!important}
             .card{border:none!important;box-shadow:none!important;margin:0!important;padding:0!important;break-inside:avoid}
@@ -100,9 +126,28 @@
 </head>
 <body>
 <div class="app">
+
+    <!-- ══ SPLASH SCREEN ══ -->
+    <div class="splash" id="splash">
+        <div class="splash-bg" id="splash-bg"></div>
+        <div class="splash-overlay"></div>
+        <div class="splash-content">
+            <div class="splash-emoji">👦🏻👧🏼</div>
+            <div class="splash-title">Garde<br>Pierre & Élise</div>
+            <div class="splash-sub">Calendrier de garde</div>
+            <div class="splash-dots"><span class="splash-dot"></span><span class="splash-dot"></span><span class="splash-dot"></span></div>
+        </div>
+    </div>
+
+    <!-- ══ ACCUEIL ══ -->
     <div id="v-today" class="view on">
-        <h1>Aujourd'hui</h1>
-        <div class="version-tag">v1.0 — Élise & Pierre</div>
+        <div class="photo-banner" id="photo-banner">
+            <div class="no-photo" id="no-photo">👦🏻👧🏼</div>
+            <img id="banner-img" alt="">
+            <div class="photo-gradient"></div>
+            <div class="photo-title">Pierre & Élise</div>
+        </div>
+        <div class="version-tag">v1.2 — Photos auto</div>
         <div class="hero">
             <div class="hero-date" id="t-date"></div>
             <div class="circle" id="t-circle"></div>
@@ -113,6 +158,7 @@
         <div class="card" id="upcoming"></div>
     </div>
 
+    <!-- ══ MOIS ══ -->
     <div id="v-calendar" class="view">
         <h1>Mois</h1>
         <div class="card" style="padding:14px 10px">
@@ -126,7 +172,7 @@
         </div>
         <div class="btn-row">
             <button class="btn btn-outline" onclick="goToday()">Ce mois-ci</button>
-            <button class="btn btn-outline" onclick="window.print()">Imprimer le mois</button>
+            <button class="btn btn-outline" onclick="window.print()">Imprimer</button>
         </div>
         <div class="legend">
             <span class="leg"><span class="ldot" style="background:var(--papa)"></span>Papa</span>
@@ -137,9 +183,10 @@
         </div>
     </div>
 
+    <!-- ══ ANNÉE ══ -->
     <div id="v-year" class="view">
         <h1>Année</h1>
-        <div class="print-header" id="print-yr-header">Calendrier de garde d'Élise & Pierre</div>
+        <div class="print-header" id="print-yr-header">Calendrier de garde de Pierre & Élise</div>
         <div class="card" style="padding:13px 14px">
             <div class="cal-nav" style="margin-bottom:0">
                 <button class="nav-btn" onclick="chYear(-1)">❮</button>
@@ -157,10 +204,11 @@
         </div>
         <div class="btn-row">
             <button class="btn btn-outline" onclick="goYear()">Année en cours</button>
-            <button class="btn btn-outline" onclick="window.print()">Imprimer l'année</button>
+            <button class="btn btn-outline" onclick="window.print()">Imprimer</button>
         </div>
     </div>
 
+    <!-- ══ STATS ══ -->
     <div id="v-stats" class="view">
         <h1>Statistiques</h1>
         <div class="seg-ctrl">
@@ -171,30 +219,22 @@
         <div id="sv-m"><div class="card" id="sl-m"></div></div>
         <div id="sv-y" style="display:none"><div class="card" id="sl-y"></div></div>
         <div id="sv-g" style="display:none"><div id="sl-g"></div></div>
-
         <div class="card export-section" style="padding:16px;margin-top:20px">
             <h3 style="margin-top:0;font-size:15px;text-align:center">Exporter l'historique</h3>
             <div style="display:flex;gap:10px;margin-bottom:12px">
-                <div style="flex:1">
-                    <label style="font-size:11px;color:var(--muted);font-weight:600">DE</label>
-                    <input type="date" id="exp-start" class="exp-input">
-                </div>
-                <div style="flex:1">
-                    <label style="font-size:11px;color:var(--muted);font-weight:600">À</label>
-                    <input type="date" id="exp-end" class="exp-input">
-                </div>
+                <div style="flex:1"><label style="font-size:11px;color:var(--muted);font-weight:600">DE</label><input type="date" id="exp-start" class="exp-input"></div>
+                <div style="flex:1"><label style="font-size:11px;color:var(--muted);font-weight:600">À</label><input type="date" id="exp-end" class="exp-input"></div>
             </div>
             <div class="btn-row" style="margin-top:0">
-                <button class="btn btn-solid" style="padding:10px;font-size:14px" onclick="exportJSONData()">Base JSON</button>
+                <button class="btn btn-solid" style="padding:10px;font-size:14px" onclick="exportJSONData()">JSON</button>
                 <button class="btn btn-outline" style="padding:10px;font-size:14px" onclick="exportICS()">iCal (.ics)</button>
             </div>
         </div>
-
         <div class="sync-info">Données : <span id="sync-lbl">Initialisation…</span></div>
     </div>
 
     <div class="tabbar">
-        <div class="tab on" onclick="sw('today',this)"><span class="tab-icon">🏠</span>Aujourd'hui</div>
+        <div class="tab on" onclick="sw('today',this)"><span class="tab-icon">🏠</span>Accueil</div>
         <div class="tab" onclick="sw('calendar',this)"><span class="tab-icon">📅</span>Mois</div>
         <div class="tab" onclick="sw('year',this)"><span class="tab-icon">🗓️</span>Année</div>
         <div class="tab" onclick="sw('stats',this)"><span class="tab-icon">📊</span>Stats</div>
@@ -206,30 +246,92 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 /* ═══════════════════════════════════════════════════════
-   GARDE ÉLISE & PIERRE — V1.0
+   GARDE PIERRE & ÉLISE — V1.1
    Jugement BENOIST / DEVERRIERE
    ═══════════════════════════════════════════════════════ */
 
-// --- GESTION DES DROITS (LIEN MAGIQUE) ---
+/* ══ PHOTOS — DÉTECTION AUTOMATIQUE ═════════════════════
+   Pour ajouter des photos :
+   1. Créer un dossier "photos/" à côté de ce fichier
+   2. Y glisser vos images nommées : 1.jpg, 2.jpg, 3.jpg…
+      (ou .png / .webp — l'app détecte automatiquement)
+   3. C'est tout ! Pas de code à modifier.
+   ════════════════════════════════════════════════════════ */
+let PHOTOS = [];
+
+function tryLoadImage(src) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(src);
+        img.onerror = () => resolve(null);
+        img.src = src;
+    });
+}
+
+async function discoverPhotos() {
+    const found = [];
+    for (let i = 1; i <= 50; i++) {
+        // Essaie jpg, png, webp en parallèle pour chaque numéro
+        const results = await Promise.all(
+            ['jpg','jpeg','png','webp'].map(ext => tryLoadImage(`photos/${i}.${ext}`))
+        );
+        const match = results.find(r => r !== null);
+        if (match) found.push(match);
+        else break; // s'arrête au premier numéro manquant
+    }
+    PHOTOS = found;
+    return found;
+}
+
+function getRandomPhoto() {
+    if (PHOTOS.length === 0) return null;
+    return PHOTOS[Math.floor(Math.random() * PHOTOS.length)];
+}
+
+function applyPhoto(photo) {
+    if (!photo) return;
+    const splashBg = document.getElementById('splash-bg');
+    if (splashBg) { splashBg.style.backgroundImage = `url(${photo})`; splashBg.style.opacity = '.4'; }
+    const bannerImg = document.getElementById('banner-img');
+    const noPhoto = document.getElementById('no-photo');
+    if (bannerImg) {
+        bannerImg.onload = () => { bannerImg.classList.add('loaded'); if(noPhoto) noPhoto.style.display = 'none'; };
+        bannerImg.src = photo;
+    }
+}
+
+async function initPhotos() {
+    await discoverPhotos();
+    applyPhoto(getRandomPhoto());
+}
+
+function initSplash() {
+    setTimeout(() => {
+        const splash = document.getElementById('splash');
+        splash.classList.add('gone');
+        setTimeout(() => splash.style.display = 'none', 700);
+    }, 2000);
+}
+
+// --- ADMIN ---
 const urlParams = new URLSearchParams(window.location.search);
-if(urlParams.get('mode') === 'maman') {
+if (urlParams.get('mode') === 'maman') {
     localStorage.setItem('ep_admin', 'true');
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 const isAdmin = localStorage.getItem('ep_admin') === 'true';
-if(!isAdmin) document.getElementById('btn-force').style.display = 'none';
+if (!isAdmin) document.getElementById('btn-force').style.display = 'none';
 
 let exceptions = JSON.parse(localStorage.getItem('ep_exceptions') || '{}');
 
-// --- FIREBASE ---
-// ⚠️ MÊME PROJET que garde-gabriel, collection séparée
+// --- FIREBASE (même projet que Gabriel, collection séparée) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyDlqyLy8Uy2mXXRruuFJmEEX6vZ_InQ1JA",
-  authDomain: "garde-gabriel.firebaseapp.com",
-  projectId: "garde-gabriel",
-  storageBucket: "garde-gabriel.firebasestorage.app",
-  messagingSenderId: "781312886263",
-  appId: "1:781312886263:web:3a749e6ef8e52cc6f99af2"
+    apiKey: "AIzaSyDlqyLy8Uy2mXXRruuFJmEEX6vZ_InQ1JA",
+    authDomain: "garde-gabriel.firebaseapp.com",
+    projectId: "garde-gabriel",
+    storageBucket: "garde-gabriel.firebasestorage.app",
+    messagingSenderId: "781312886263",
+    appId: "1:781312886263:web:3a749e6ef8e52cc6f99af2"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -246,7 +348,7 @@ onSnapshot(docRef, (snap) => {
             localStorage.setItem('ep_exceptions', JSON.stringify(exceptions));
             renderAll();
             const lbl = document.getElementById('sync-lbl');
-            if(lbl) lbl.textContent = 'Synchronisé Cloud ⚡';
+            if (lbl) lbl.textContent = 'Synchronisé Cloud ⚡';
         }
     } else if (isAdmin) {
         setDoc(docRef, exceptions).catch(e => console.error(e));
@@ -254,13 +356,13 @@ onSnapshot(docRef, (snap) => {
 });
 
 const saveEx = () => {
-    if(!isAdmin) return;
+    if (!isAdmin) return;
     localStorage.setItem('ep_exceptions', JSON.stringify(exceptions));
     setDoc(docRef, exceptions).catch(e => console.error("Erreur Firebase:", e));
 };
 
 const d2s = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const s2d = s => { const[y,m,j]=s.split('-').map(Number); return new Date(y,m-1,j,12,0,0) };
+const s2d = s => { const [y,m,j] = s.split('-').map(Number); return new Date(y, m-1, j, 12, 0, 0) };
 
 /* ── VACANCES SCOLAIRES Zone C ── */
 const schoolHols = [
@@ -296,7 +398,7 @@ const schoolHols = [
     {n:"Été",s:"2030-07-06",e:"2030-08-31",summer:true}
 ];
 
-/* ── JOURS FÉRIÉS & CALCULS CALENDAIRES ── */
+/* ── CALENDAIRE ── */
 
 function computeEaster(year) {
     const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,
@@ -308,427 +410,229 @@ function computeEaster(year) {
 
 function getMothersDay(yr) {
     let fdm = new Date(yr, 4, 31, 12, 0, 0);
-    while(fdm.getDay() !== 0) fdm.setDate(fdm.getDate() - 1);
+    while (fdm.getDay() !== 0) fdm.setDate(fdm.getDate() - 1);
     const easter = computeEaster(yr);
     const pentecost = new Date(easter); pentecost.setDate(easter.getDate() + 49);
-    if(d2s(fdm) === d2s(pentecost)) fdm.setDate(fdm.getDate() + 7);
+    if (d2s(fdm) === d2s(pentecost)) fdm.setDate(fdm.getDate() + 7);
     return d2s(fdm);
 }
 
 function getFathersDay(yr) {
     const fdp = new Date(yr, 5, 1, 12, 0, 0);
     let sc = 0;
-    while(sc < 3) { if(fdp.getDay() === 0) sc++; if(sc < 3) fdp.setDate(fdp.getDate() + 1); }
+    while (sc < 3) { if (fdp.getDay() === 0) sc++; if (sc < 3) fdp.setDate(fdp.getDate() + 1); }
     return d2s(fdp);
 }
 
 function getPH(year) {
     const easter = computeEaster(year);
     const add = n => { const x = new Date(easter); x.setDate(x.getDate() + n); return d2s(x) };
-    return new Set([
-        `${year}-01-01`, `${year}-05-01`, `${year}-05-08`, `${year}-07-14`,
-        `${year}-08-15`, `${year}-11-01`, `${year}-11-11`, `${year}-12-25`,
-        add(1), add(39), add(50)
-    ]);
+    return new Set([`${year}-01-01`,`${year}-05-01`,`${year}-05-08`,`${year}-07-14`,`${year}-08-15`,`${year}-11-01`,`${year}-11-11`,`${year}-12-25`,add(1),add(39),add(50)]);
 }
 
 function getFerieName(ds) {
     const y = parseInt(ds.split('-')[0]);
     const easter = computeEaster(y);
     const add = n => { const x = new Date(easter); x.setDate(x.getDate() + n); return d2s(x) };
-    const dict = {
-        [`${y}-01-01`]:"Jour de l'An", [`${y}-05-01`]:"Fête du Travail", [`${y}-05-08`]:"Victoire 1945",
-        [`${y}-07-14`]:"Fête Nationale", [`${y}-08-15`]:"Assomption", [`${y}-11-01`]:"Toussaint",
-        [`${y}-11-11`]:"Armistice 1918", [`${y}-12-25`]:"Noël",
-        [add(1)]:"Lundi de Pâques", [add(39)]:"Ascension", [add(50)]:"Lundi de Pentecôte"
-    };
-    return dict[ds] || null;
+    return ({
+        [`${y}-01-01`]:"Jour de l'An",[`${y}-05-01`]:"Fête du Travail",[`${y}-05-08`]:"Victoire 1945",
+        [`${y}-07-14`]:"Fête Nationale",[`${y}-08-15`]:"Assomption",[`${y}-11-01`]:"Toussaint",
+        [`${y}-11-11`]:"Armistice 1918",[`${y}-12-25`]:"Noël",
+        [add(1)]:"Lundi de Pâques",[add(39)]:"Ascension",[add(50)]:"Lundi de Pentecôte"
+    })[ds] || null;
 }
 
-function getAscensionDate(yr) {
-    const easter = computeEaster(yr);
-    const asc = new Date(easter); asc.setDate(easter.getDate() + 39);
-    return d2s(asc);
-}
-
-function getEasterMonday(yr) {
-    const easter = computeEaster(yr);
-    const em = new Date(easter); em.setDate(easter.getDate() + 1);
-    return d2s(em);
-}
+function getAscensionDate(yr) { const e = computeEaster(yr); const a = new Date(e); a.setDate(e.getDate()+39); return d2s(a); }
+function getEasterMonday(yr) { const e = computeEaster(yr); const m = new Date(e); m.setDate(e.getDate()+1); return d2s(m); }
 
 function isoWeek(date) {
     const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayN = tmp.getUTCDay() || 7;
     tmp.setUTCDate(tmp.getUTCDate() + 4 - dayN);
-    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
-    return Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+    const ys = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    return Math.ceil((((tmp - ys) / 86400000) + 1) / 7);
 }
 
-/* ══════════════════════════════════════════════
-   ALGORITHME DE GARDE — JUGEMENT BENOIST/DEVERRIERE
-   
-   Résidence habituelle : Maman
-   Périodes scolaires : Papa du jeudi soir (S impaires) au lundi matin (S paires)
-     → Papa a : Jeu(soir)/Ven/Sam/Dim des semaines impaires
-   Petites vacances :
-     Années impaires → 1ère moitié Papa
-     Années paires   → 2ème moitié Papa
-   Été :
-     Années paires   → 1ère quinzaine juil + 1ère quinzaine août Papa
-     Années impaires → 2ème quinzaine juil + 2ème quinzaine août Papa
-   Noël : 24 déc Maman (10h30→25 10h30), 25 déc Papa (10h30→26 10h30)
-   Ascension (week-end complet) + Lundi de Pâques → toujours Maman
-   Fête des Mères/Pères → parent concerné
-   Fériés/ponts adjacents → assimilés à la période d'accueil
-   ══════════════════════════════════════════════ */
+/* ═══════════ ALGORITHME DE GARDE ═══════════ */
 
 function getCustody(date) {
-    const ds = d2s(date);
-    const yr = date.getFullYear();
-    const dow = date.getDay(); // 0=Dim, 1=Lun...6=Sam
-    const t = date.getTime();
-    const weekNo = isoWeek(date);
-    const isOddWk = (weekNo % 2 !== 0);
+    const ds = d2s(date), yr = date.getFullYear(), dow = date.getDay(), t = date.getTime();
+    const weekNo = isoWeek(date), isOddWk = (weekNo % 2 !== 0);
 
-    // Déterminer si on est en vacances scolaires
     let isVac = false;
     for (const h of schoolHols) {
-        const startH = s2d(h.s);
-        const firstNight = new Date(startH); firstNight.setDate(firstNight.getDate() - 1);
-        const endH = s2d(h.e);
-        if (t >= firstNight.getTime() && t <= endH.getTime()) { isVac = true; break; }
+        const fn = new Date(s2d(h.s)); fn.setDate(fn.getDate()-1);
+        if (t >= fn.getTime() && t <= s2d(h.e).getTime()) { isVac = true; break; }
     }
+    const ph = getPH(yr), isFerie = ph.has(ds);
 
-    const ph = getPH(yr);
-    const isFerie = ph.has(ds);
+    if (exceptions[ds]) return { who:exceptions[ds], why:"Exception manuelle", forced:true, vac:isVac, ferie:isFerie };
+    if (ds === getMothersDay(yr)) return { who:"Maman", why:"Fête des Mères 💐", vac:isVac, ferie:isFerie };
+    if (ds === getFathersDay(yr)) return { who:"Papa", why:"Fête des Pères 👔", vac:isVac, ferie:isFerie };
+    if (ds === `${yr}-12-24`) return { who:"Maman", why:"Réveillon de Noël (Maman)", vac:isVac, ferie:isFerie };
+    if (ds === `${yr}-12-25`) return { who:"Papa", why:"Jour de Noël (Papa)", vac:isVac, ferie:true };
+    if (ds === getEasterMonday(yr)) return { who:"Maman", why:"Lundi de Pâques (Maman)", vac:isVac, ferie:true };
 
-    // 1. EXCEPTIONS MANUELLES
-    if (exceptions[ds]) {
-        return { who: exceptions[ds], why: "Exception manuelle", forced: true, vac: isVac, ferie: isFerie };
-    }
+    // Ascension week-end (Jeu→Dim) → toujours Maman
+    const ascD = s2d(getAscensionDate(yr));
+    for (let i = 0; i <= 3; i++) { const x = new Date(ascD); x.setDate(ascD.getDate()+i); if (ds===d2s(x)) return { who:"Maman", why:"Week-end Ascension (Maman)", vac:isVac, ferie:i===0 }; }
 
-    // 2. FÊTE DES MÈRES / PÈRES
-    if (ds === getMothersDay(yr)) return { who: "Maman", why: "Fête des Mères 💐", vac: isVac, ferie: isFerie };
-    if (ds === getFathersDay(yr)) return { who: "Papa", why: "Fête des Pères 👔", vac: isVac, ferie: isFerie };
-
-    // 3. NOËL SPÉCIAL (chaque année, pas d'alternance)
-    if (ds === `${yr}-12-24`) return { who: "Maman", why: "Réveillon de Noël (Maman 10h30→25 10h30)", vac: isVac, ferie: isFerie };
-    if (ds === `${yr}-12-25`) return { who: "Papa", why: "Noël (Papa 10h30→26 10h30)", vac: isVac, ferie: isFerie };
-
-    // 4. LUNDI DE PÂQUES → toujours Maman
-    if (ds === getEasterMonday(yr)) return { who: "Maman", why: "Lundi de Pâques (toujours Maman)", vac: isVac, ferie: true };
-
-    // 5. WEEK-END DE L'ASCENSION → toujours Maman (Jeu+Ven+Sam+Dim)
-    const ascDS = getAscensionDate(yr);
-    const ascDate = s2d(ascDS);
-    const ascFri = new Date(ascDate); ascFri.setDate(ascDate.getDate() + 1);
-    const ascSat = new Date(ascDate); ascSat.setDate(ascDate.getDate() + 2);
-    const ascSun = new Date(ascDate); ascSun.setDate(ascDate.getDate() + 3);
-    if (ds === ascDS || ds === d2s(ascFri) || ds === d2s(ascSat) || ds === d2s(ascSun)) {
-        return { who: "Maman", why: "Week-end de l'Ascension (toujours Maman)", vac: isVac, ferie: ds === ascDS };
-    }
-
-    // 6. VACANCES SCOLAIRES
+    // Vacances scolaires
     for (const h of schoolHols) {
-        const startH = s2d(h.s);
-        const firstNight = new Date(startH); firstNight.setDate(firstNight.getDate() - 1);
-        const endH = s2d(h.e);
-        if (t < firstNight.getTime() || t > endH.getTime()) continue;
-
-        const startYear = parseInt(h.s.split('-')[0]);
-        const isOddYear = (startYear % 2 !== 0);
-
+        const fn = new Date(s2d(h.s)); fn.setDate(fn.getDate()-1);
+        if (t < fn.getTime() || t > s2d(h.e).getTime()) continue;
+        const sY = parseInt(h.s.split('-')[0]), isOddY = (sY%2!==0);
         if (h.summer) {
-            // ÉTÉ : quinzaines de juillet et août
-            const mo = date.getMonth(); // 6=juillet, 7=août
-            const day = date.getDate();
-            const isFirstFortnight = (day <= 15);
-
-            let papaHas;
-            if (mo === 6) { // Juillet
-                // Années paires: Papa a 1ère quinzaine / Années impaires: Papa a 2ème quinzaine
-                papaHas = isOddYear ? !isFirstFortnight : isFirstFortnight;
-            } else if (mo === 7) { // Août
-                papaHas = isOddYear ? !isFirstFortnight : isFirstFortnight;
-            } else {
-                // Fin juin ou début sept dans la période vacances → traiter comme adjacent
-                papaHas = false;
-            }
-
-            const qLabel = isFirstFortnight ? "1ère quinzaine" : "2ème quinzaine";
-            const moLabel = mo === 6 ? "de Juillet" : mo === 7 ? "d'Août" : "";
-            return { who: papaHas ? "Papa" : "Maman", why: `Été (${qLabel} ${moLabel})`, vac: true, ferie: isFerie };
-
+            const mo = date.getMonth(), day = date.getDate(), fq = (day<=15);
+            let papa = false;
+            if (mo===6||mo===7) papa = isOddY ? !fq : fq;
+            const ql = fq?"1ère quinzaine":"2ème quinzaine", ml = mo===6?"de Juillet":mo===7?"d'Août":"";
+            return { who:papa?"Papa":"Maman", why:`Été (${ql} ${ml})`, vac:true, ferie:isFerie };
         } else {
-            // PETITES VACANCES : 1ère moitié / 2ème moitié
-            const midH = s2d(h.mid);
-            const isFirst = (t < midH.getTime());
-            // Années impaires → 1ère moitié Papa / Années paires → 2ème moitié Papa
-            const papaHas = isOddYear ? isFirst : !isFirst;
-            return { who: papaHas ? "Papa" : "Maman", why: `Vacances ${h.n} (${isFirst ? '1ère' : '2ème'} moitié)`, vac: true, ferie: isFerie };
+            const isFirst = (t < s2d(h.mid).getTime());
+            const papa = isOddY ? isFirst : !isFirst;
+            return { who:papa?"Papa":"Maman", why:`Vacances ${h.n} (${isFirst?'1ère':'2ème'} moitié)`, vac:true, ferie:isFerie };
         }
     }
 
-    // 7. JOURS FÉRIÉS / PONTS (hors vacances)
-    // Lundi férié → si suit directement le week-end Papa (semaine impaire précédente)
-    if (dow === 1 && isFerie) {
-        // Lundi = début d'une nouvelle ISO semaine. La semaine précédente était impaire ?
-        const prevSunday = new Date(date); prevSunday.setDate(date.getDate() - 1);
-        const prevWeekNo = isoWeek(prevSunday);
-        if (prevWeekNo % 2 !== 0) {
-            // Suit directement le WE du papa → assimilé
-            return { who: "Papa", why: `Lundi férié (prolonge le week-end Papa)`, ferie: true, vac: isVac };
-        }
+    // Fériés / ponts
+    if (dow===1 && isFerie) { const ps=new Date(date);ps.setDate(date.getDate()-1); if(isoWeek(ps)%2!==0) return{who:"Papa",why:"Lundi férié (prolonge WE Papa)",ferie:true,vac:isVac}; }
+    if (dow===3 && isFerie && isOddWk) return { who:"Papa", why:"Mercredi férié (anticipe WE Papa)", ferie:true, vac:isVac };
+
+    // Emploi du temps normal : Papa = Jeu/Ven/Sam/Dim semaines impaires
+    if (isOddWk && (dow===4||dow===5||dow===6||dow===0)) {
+        const n={0:"Dimanche",4:"Jeudi",5:"Vendredi",6:"Samedi"};
+        return { who:"Papa", why:`S${weekNo} (impaire) — ${n[dow]} Papa`, vac:isVac, ferie:isFerie };
     }
 
-    // Mercredi férié → si précède directement le jeudi Papa (même semaine impaire)
-    if (dow === 3 && isFerie && isOddWk) {
-        return { who: "Papa", why: `Mercredi férié (anticipe le week-end Papa)`, ferie: true, vac: isVac };
-    }
-
-    // Vendredi férié → si la veille (jeudi) était un férié (pont du vendredi après Ascension déjà géré)
-    // Jeudi férié en semaine paire → pont avec le week-end suivant si semaine suivante impaire?
-    // Simplifié: jeudi férié en semaine paire = pont potentiel si vendredi pont vers WE impaire
-    // On reste conservateur : seulement les cas explicites lundi/mercredi
-
-    // 8. EMPLOI DU TEMPS NORMAL (périodes scolaires)
-    // Papa : Jeu(soir)/Ven/Sam/Dim des semaines ISO impaires
-    if (isOddWk && (dow === 4 || dow === 5 || dow === 6 || dow === 0)) {
-        const dayNames = {0: "Dimanche", 4: "Jeudi", 5: "Vendredi", 6: "Samedi"};
-        return { who: "Papa", why: `S${weekNo} (impaire) — ${dayNames[dow]} chez Papa`, vac: isVac, ferie: isFerie };
-    }
-
-    // 9. DÉFAUT : MAMAN
-    return { who: "Maman", why: `Résidence habituelle`, vac: isVac, ferie: isFerie };
+    return { who:"Maman", why:"Résidence habituelle", vac:isVac, ferie:isFerie };
 }
 
-/* ── RENDU UI ── */
+/* ── RENDU ── */
 
 function renderToday() {
-    const now = new Date();
-    const c = getCustody(now);
-    document.getElementById('t-date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-    const circ = document.getElementById('t-circle');
-    circ.className = 'circle ' + (c.who === 'Papa' ? 'papa' : 'maman');
-    circ.textContent = c.who;
-    document.getElementById('t-reason').textContent = c.why + (c.forced ? ' (modifié manuellement)' : '');
+    const now=new Date(), c=getCustody(now);
+    document.getElementById('t-date').textContent = now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const circ=document.getElementById('t-circle');
+    circ.className='circle '+(c.who==='Papa'?'papa':'maman'); circ.textContent=c.who;
+    document.getElementById('t-reason').textContent=c.why+(c.forced?' (modifié)':'');
+    const ul=document.getElementById('upcoming'); ul.innerHTML='';
+    let prev=c.who, found=0;
+    for(let i=1;i<=120&&found<5;i++){const d=new Date(now);d.setDate(now.getDate()+i);const ci=getCustody(d);
+        if(ci.who!==prev){ul.innerHTML+=`<div class="row"><div class="rl"><span class="rt">${d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</span><span class="rs">${ci.why}</span></div><span class="${ci.who==='Papa'?'tp':'tm'}">${ci.who}</span></div>`;prev=ci.who;found++;}}
+}
 
-    const ul = document.getElementById('upcoming');
-    ul.innerHTML = '';
-    let prev = c.who, found = 0;
-    for (let i = 1; i <= 120 && found < 5; i++) {
-        const d = new Date(now); d.setDate(now.getDate() + i);
-        const ci = getCustody(d);
-        if (ci.who !== prev) {
-            ul.innerHTML += `<div class="row"><div class="rl"><span class="rt">${d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</span><span class="rs">${ci.why}</span></div><span class="${ci.who === 'Papa' ? 'tp' : 'tm'}">${ci.who}</span></div>`;
-            prev = ci.who; found++;
+let calDate=new Date();calDate.setDate(1);
+const chMonth=d=>{calDate.setMonth(calDate.getMonth()+d);renderCal()};
+const goToday=()=>{calDate=new Date();calDate.setDate(1);renderCal()};
+
+function renderCal(){
+    const yr=calDate.getFullYear(),mo=calDate.getMonth();
+    const title=new Date(yr,mo,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+    document.getElementById('cal-title').textContent=title.charAt(0).toUpperCase()+title.slice(1);
+    const g=document.getElementById('cal-grid');
+    g.innerHTML=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d=>`<div class="dname">${d}</div>`).join('');
+    const skip=(new Date(yr,mo,1).getDay()||7)-1;
+    for(let i=0;i<skip;i++) g.innerHTML+=`<div class="day empty"></div>`;
+    const todayS=d2s(new Date()); let htmlEv='';
+    for(let d=1;d<=new Date(yr,mo+1,0).getDate();d++){
+        const date=new Date(yr,mo,d,12,0,0),ds=d2s(date),c=getCustody(date);
+        let cls=`day ${c.who==='Papa'?'papa':'maman'}`;
+        if(ds===todayS)cls+=' today';if(c.forced)cls+=' exc';if(c.ferie)cls+=' fer';if(c.vac)cls+=' vac';
+        g.innerHTML+=`<div class="${cls}" onclick="toggleDay('${ds}')">${d}</div>`;
+        const ph=getFerieName(ds);
+        if(ph) htmlEv+=`<div class="event-item"><span class="edot fer"></span><span style="font-weight:600;width:30px;text-align:right;margin-right:4px">${d}</span> ${ph}</div>`;
+    }
+    const ev=document.getElementById('cal-events');ev.innerHTML=htmlEv;ev.style.display=htmlEv?'flex':'none';
+}
+
+let yrView=new Date().getFullYear();
+const chYear=d=>{yrView+=d;renderYear()};const goYear=()=>{yrView=new Date().getFullYear();renderYear()};
+
+function renderYear(){
+    document.getElementById('yr-title').textContent=yrView;
+    document.getElementById('print-yr-header').textContent='Calendrier de garde de Pierre & Élise — '+yrView;
+    const g=document.getElementById('yr-grid');g.innerHTML='';
+    const MO=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+    const todayS=d2s(new Date());
+    for(let m=0;m<12;m++){
+        let html=`<div class="mm"><div class="mm-title">${MO[m]}</div><div class="mm-grid">`;
+        html+=['L','M','M','J','V','S','D'].map(d=>`<div class="mdn">${d}</div>`).join('');
+        const skip=(new Date(yrView,m,1).getDay()||7)-1;
+        for(let i=0;i<skip;i++) html+=`<div></div>`;
+        for(let d=1;d<=new Date(yrView,m+1,0).getDate();d++){
+            const date=new Date(yrView,m,d,12,0,0),ds=d2s(date),c=getCustody(date);
+            let cls=`md ${c.who==='Papa'?'papa':'maman'}`;
+            if(ds===todayS)cls+=' today';if(c.forced)cls+=' exc';if(c.ferie)cls+=' fer';if(c.vac)cls+=' vac';
+            html+=`<div class="${cls}" onclick="toggleDay('${ds}')">${d}</div>`;
         }
+        html+=`</div></div>`;g.innerHTML+=html;
     }
 }
 
-let calDate = new Date(); calDate.setDate(1);
-const chMonth = d => { calDate.setMonth(calDate.getMonth() + d); renderCal() };
-const goToday = () => { calDate = new Date(); calDate.setDate(1); renderCal() };
+function toggleDay(ds){
+    if(!isAdmin){alert("Mode lecture seule.");return}
+    if(exceptions[ds]){if(confirm(`Annuler l'exception du ${ds} ?`)){delete exceptions[ds];saveEx();renderAll();return}}
+    const nw=getCustody(s2d(ds)).who==='Papa'?'Maman':'Papa';
+    if(confirm(`Passer le ${ds} à ${nw} ?`)){exceptions[ds]=nw;saveEx();renderAll()}
+}
+function forceToday(){toggleDay(d2s(new Date()))}
 
-function renderCal() {
-    const yr = calDate.getFullYear(), mo = calDate.getMonth();
-    const title = new Date(yr, mo, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-    document.getElementById('cal-title').textContent = title.charAt(0).toUpperCase() + title.slice(1);
-    const g = document.getElementById('cal-grid');
-    g.innerHTML = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d => `<div class="dname">${d}</div>`).join('');
-    const skip = (new Date(yr, mo, 1).getDay() || 7) - 1;
-    for (let i = 0; i < skip; i++) g.innerHTML += `<div class="day empty"></div>`;
+function stTab(t){['m','y','g'].forEach(x=>{document.getElementById('sb-'+x).classList.toggle('on',x===t);document.getElementById('sv-'+x).style.display=x===t?'block':'none'})}
 
-    const todayS = d2s(new Date());
-    let htmlEvents = '';
+function computeStats(){
+    const cur=new Date().getFullYear(),stats={months:{},years:{}};
+    [cur,cur+1].forEach(yr=>{stats.years[yr]={papa:0,maman:0,tot:0};
+        for(let m=0;m<12;m++){const key=`${yr}-${String(m+1).padStart(2,'0')}`;
+            stats.months[key]={papa:0,maman:0,tot:0,date:new Date(yr,m,1)};
+            for(let d=1;d<=new Date(yr,m+1,0).getDate();d++){const c=getCustody(new Date(yr,m,d,12,0,0));
+                stats.years[yr].tot++;stats.months[key].tot++;
+                c.who==='Papa'?(stats.years[yr].papa++,stats.months[key].papa++):(stats.years[yr].maman++,stats.months[key].maman++)}}});return stats}
 
-    for (let d = 1; d <= new Date(yr, mo + 1, 0).getDate(); d++) {
-        const date = new Date(yr, mo, d, 12, 0, 0);
-        const ds = d2s(date);
-        const c = getCustody(date);
-        let cls = `day ${c.who === 'Papa' ? 'papa' : 'maman'}`;
-        if (ds === todayS) cls += ' today';
-        if (c.forced) cls += ' exc';
-        if (c.ferie) cls += ' fer';
-        if (c.vac) cls += ' vac';
-        g.innerHTML += `<div class="${cls}" onclick="toggleDay('${ds}')">${d}</div>`;
-
-        const phName = getFerieName(ds);
-        if (phName) {
-            htmlEvents += `<div class="event-item"><span class="edot fer"></span><span style="font-weight:600;width:30px;text-align:right;margin-right:4px">${d}</span> ${phName}</div>`;
-        }
-    }
-
-    const evContainer = document.getElementById('cal-events');
-    evContainer.innerHTML = htmlEvents;
-    evContainer.style.display = htmlEvents ? 'flex' : 'none';
+function renderStats(){
+    const s=computeStats();
+    document.getElementById('sl-m').innerHTML=Object.keys(s.months).sort().map(k=>{const d=s.months[k],pp=Math.round(d.papa/d.tot*100)||0;
+        return`<div class="row"><span class="rt">${d.date.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><span style="font-size:13px"><span class="tp">${d.papa}j (${pp}%)</span> / <span class="tm">${d.maman}j (${100-pp}%)</span></span></div>`}).join('');
+    document.getElementById('sl-y').innerHTML=Object.keys(s.years).sort().map(yr=>{const d=s.years[yr],pp=Math.round(d.papa/d.tot*100)||0;
+        return`<div class="row"><span class="rt">Année ${yr}</span><div style="text-align:right"><div class="tp">Papa : ${d.papa}j (${pp}%)</div><div class="tm">Maman : ${d.maman}j (${100-pp}%)</div></div></div>`}).join('');
+    document.getElementById('sl-g').innerHTML=Object.keys(s.years).sort().map(yr=>{const d=s.years[yr],pp=Math.round(d.papa/d.tot*100)||0;
+        return`<div class="card"><div style="padding:16px"><h3 style="text-align:center;margin-top:0">Répartition ${yr}</h3><div class="dist-bar"><div class="dp" style="width:${pp}%"></div><div class="dm" style="width:${100-pp}%"></div></div><div class="dist-lbl"><span class="tp">Papa ${pp}%</span><span class="tm">Maman ${100-pp}%</span></div></div></div>`}).join('');
 }
 
-let yrView = new Date().getFullYear();
-const chYear = d => { yrView += d; renderYear() };
-const goYear = () => { yrView = new Date().getFullYear(); renderYear() };
+function exportJSONData(){
+    const si=document.getElementById('exp-start').value,ei=document.getElementById('exp-end').value;
+    if(!si||!ei)return alert("Sélectionnez les dates.");
+    const start=new Date(si+'T12:00:00'),end=new Date(ei+'T12:00:00');
+    if(start>end)return alert("Date de fin antérieure.");
+    const data=[];for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const ds=d2s(d),c=getCustody(d),wk=isoWeek(d);
+        data.push({Date:ds,Jour:d.toLocaleDateString('fr-FR',{weekday:'long'}),Semaine:wk%2===0?"Paire":"Impaire",Garde:c.who,Raison:c.why,Vacances:!!c.vac,Ferie:!!c.ferie,Exception:!!c.forced})}
+    const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(data,null,2));
+    a.download=`Export_EP_${si}_au_${ei}.json`;document.body.appendChild(a);a.click();a.remove()}
 
-function renderYear() {
-    document.getElementById('yr-title').textContent = yrView;
-    document.getElementById('print-yr-header').textContent = "Calendrier de garde d'Élise & Pierre - Année " + yrView;
-    const g = document.getElementById('yr-grid'); g.innerHTML = '';
-    const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
-    const todayS = d2s(new Date());
+function exportICS(){
+    const yr=new Date().getFullYear();let ics="BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Garde Pierre Elise//FR\r\nCALSCALE:GREGORIAN\r\n";
+    let prev=null,bs=null;for(let o=0;o<730;o++){const d=new Date(yr,0,1,12,0,0);d.setDate(d.getDate()+o);const ds=d2s(d),c=getCustody(d);
+        if(c.who!==prev){if(prev&&bs) ics+=`BEGIN:VEVENT\r\nSUMMARY:P&E - ${prev}\r\nDTSTART;VALUE=DATE:${bs.replace(/-/g,'')}\r\nDTEND;VALUE=DATE:${ds.replace(/-/g,'')}\r\nEND:VEVENT\r\n`;bs=ds;prev=c.who}}
+    if(prev&&bs){const e=new Date(yr,0,1,12);e.setDate(e.getDate()+730);ics+=`BEGIN:VEVENT\r\nSUMMARY:P&E - ${prev}\r\nDTSTART;VALUE=DATE:${bs.replace(/-/g,'')}\r\nDTEND;VALUE=DATE:${d2s(e).replace(/-/g,'')}\r\nEND:VEVENT\r\n`}
+    ics+="END:VCALENDAR\r\n";const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));a.download='garde_pierre_elise.ics';a.click()}
 
-    for (let m = 0; m < 12; m++) {
-        let html = `<div class="mm"><div class="mm-title">${MONTHS[m]}</div><div class="mm-grid">`;
-        html += ['L','M','M','J','V','S','D'].map(d => `<div class="mdn">${d}</div>`).join('');
-        const skip = (new Date(yrView, m, 1).getDay() || 7) - 1;
-        for (let i = 0; i < skip; i++) html += `<div></div>`;
-        for (let d = 1; d <= new Date(yrView, m + 1, 0).getDate(); d++) {
-            const date = new Date(yrView, m, d, 12, 0, 0);
-            const ds = d2s(date);
-            const c = getCustody(date);
-            let cls = `md ${c.who === 'Papa' ? 'papa' : 'maman'}`;
-            if (ds === todayS) cls += ' today';
-            if (c.forced) cls += ' exc';
-            if (c.ferie) cls += ' fer';
-            if (c.vac) cls += ' vac';
-            html += `<div class="${cls}" onclick="toggleDay('${ds}')">${d}</div>`;
-        }
-        html += `</div></div>`; g.innerHTML += html;
-    }
+function sw(id,el){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    document.getElementById('v-'+id).classList.add('on');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');
+    if(id==='today'){const p=getRandomPhoto();if(p){const img=document.getElementById('banner-img');img.classList.remove('loaded');applyPhoto(p)}}
 }
 
-function toggleDay(ds) {
-    if (!isAdmin) {
-        alert("Mode lecture seule.\nConsultation uniquement.");
-        return;
-    }
-    if (exceptions[ds]) {
-        if (confirm(`Annuler l'exception du ${ds} et revenir au calcul normal ?`)) { delete exceptions[ds]; saveEx(); renderAll(); return; }
-    }
-    const nw = getCustody(s2d(ds)).who === 'Papa' ? 'Maman' : 'Papa';
-    if (confirm(`Inverser exceptionnellement la garde le ${ds} pour ${nw} ?`)) { exceptions[ds] = nw; saveEx(); renderAll(); }
-}
-function forceToday() { toggleDay(d2s(new Date())) }
+function renderAll(){renderToday();renderCal();renderYear();renderStats();
+    if(!document.getElementById('exp-start').value){const t=new Date(),n=new Date();n.setFullYear(t.getFullYear()+1);document.getElementById('exp-start').value=d2s(t);document.getElementById('exp-end').value=d2s(n)}}
 
-function stTab(t) {
-    ['m','y','g'].forEach(x => {
-        document.getElementById('sb-' + x).classList.toggle('on', x === t);
-        document.getElementById('sv-' + x).style.display = x === t ? 'block' : 'none';
-    });
-}
+window.forceToday=forceToday;window.chMonth=chMonth;window.goToday=goToday;
+window.chYear=chYear;window.goYear=goYear;window.toggleDay=toggleDay;
+window.stTab=stTab;window.exportJSONData=exportJSONData;window.exportICS=exportICS;window.sw=sw;
 
-function computeStats() {
-    const cur = new Date().getFullYear();
-    const stats = { months: {}, years: {} };
-    [cur, cur + 1].forEach(yr => {
-        stats.years[yr] = { papa: 0, maman: 0, tot: 0 };
-        for (let m = 0; m < 12; m++) {
-            const key = `${yr}-${String(m + 1).padStart(2, '0')}`;
-            stats.months[key] = { papa: 0, maman: 0, tot: 0, date: new Date(yr, m, 1) };
-            for (let d = 1; d <= new Date(yr, m + 1, 0).getDate(); d++) {
-                const c = getCustody(new Date(yr, m, d, 12, 0, 0));
-                stats.years[yr].tot++; stats.months[key].tot++;
-                c.who === 'Papa' ? (stats.years[yr].papa++, stats.months[key].papa++) : (stats.years[yr].maman++, stats.months[key].maman++);
-            }
-        }
-    });
-    return stats;
-}
-
-function renderStats() {
-    const s = computeStats();
-    document.getElementById('sl-m').innerHTML = Object.keys(s.months).sort().map(k => {
-        const d = s.months[k]; const pp = Math.round(d.papa / d.tot * 100) || 0;
-        return `<div class="row"><span class="rt">${d.date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span><span style="font-size:13px"><span class="tp">${d.papa}j (${pp}%)</span> / <span class="tm">${d.maman}j (${100-pp}%)</span></span></div>`;
-    }).join('');
-    document.getElementById('sl-y').innerHTML = Object.keys(s.years).sort().map(yr => {
-        const d = s.years[yr]; const pp = Math.round(d.papa / d.tot * 100) || 0;
-        return `<div class="row"><span class="rt">Année ${yr}</span><div style="text-align:right"><div class="tp">Papa : ${d.papa}j (${pp}%)</div><div class="tm">Maman : ${d.maman}j (${100-pp}%)</div></div></div>`;
-    }).join('');
-    document.getElementById('sl-g').innerHTML = Object.keys(s.years).sort().map(yr => {
-        const d = s.years[yr]; const pp = Math.round(d.papa / d.tot * 100) || 0;
-        return `<div class="card"><div style="padding:16px"><h3 style="text-align:center;margin-top:0">Répartition ${yr}</h3><div class="dist-bar"><div class="dp" style="width:${pp}%"></div><div class="dm" style="width:${100-pp}%"></div></div><div class="dist-lbl"><span class="tp">Papa ${pp}%</span><span class="tm">Maman ${100-pp}%</span></div></div></div>`;
-    }).join('');
-}
-
-function exportJSONData() {
-    const startInput = document.getElementById('exp-start').value;
-    const endInput = document.getElementById('exp-end').value;
-    if (!startInput || !endInput) return alert("Veuillez sélectionner les dates.");
-    const start = new Date(startInput + 'T12:00:00');
-    const end = new Date(endInput + 'T12:00:00');
-    if (start > end) return alert("La date de fin doit être postérieure.");
-
-    const data = [];
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const ds = d2s(d); const c = getCustody(d); const wk = isoWeek(d);
-        data.push({
-            Date: ds,
-            Jour: d.toLocaleDateString('fr-FR', { weekday: 'long' }),
-            Semaine: wk % 2 === 0 ? "Paire" : "Impaire",
-            Garde: c.who,
-            Raison: c.why,
-            Vacances: !!c.vac,
-            Ferie: !!c.ferie,
-            Exception: !!c.forced
-        });
-    }
-    const a = document.createElement('a');
-    a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-    a.download = `Export_EP_${startInput}_au_${endInput}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-}
-
-function exportICS() {
-    const yr = new Date().getFullYear();
-    let ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Garde Elise Pierre//FR\r\nCALSCALE:GREGORIAN\r\n";
-    let prev = null, blockStart = null;
-    for (let offset = 0; offset < 730; offset++) {
-        const d = new Date(yr, 0, 1, 12, 0, 0); d.setDate(d.getDate() + offset);
-        const ds = d2s(d); const c = getCustody(d);
-        if (c.who !== prev) {
-            if (prev && blockStart) ics += `BEGIN:VEVENT\r\nSUMMARY:E&P - ${prev}\r\nDTSTART;VALUE=DATE:${blockStart.replace(/-/g,'')}\r\nDTEND;VALUE=DATE:${ds.replace(/-/g,'')}\r\nEND:VEVENT\r\n`;
-            blockStart = ds; prev = c.who;
-        }
-    }
-    if (prev && blockStart) {
-        const end = new Date(yr, 0, 1, 12, 0, 0); end.setDate(end.getDate() + 730);
-        ics += `BEGIN:VEVENT\r\nSUMMARY:E&P - ${prev}\r\nDTSTART;VALUE=DATE:${blockStart.replace(/-/g,'')}\r\nDTEND;VALUE=DATE:${d2s(end).replace(/-/g,'')}\r\nEND:VEVENT\r\n`;
-    }
-    ics += "END:VCALENDAR\r\n";
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
-    a.download = 'garde_elise_pierre.ics'; a.click();
-}
-
-function sw(id, el) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-    document.getElementById('v-' + id).classList.add('on');
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-    el.classList.add('on');
-}
-
-function renderAll() {
-    renderToday(); renderCal(); renderYear(); renderStats();
-    if (!document.getElementById('exp-start').value) {
-        const todayExp = new Date();
-        const nextYearExp = new Date(); nextYearExp.setFullYear(todayExp.getFullYear() + 1);
-        document.getElementById('exp-start').value = d2s(todayExp);
-        document.getElementById('exp-end').value = d2s(nextYearExp);
-    }
-}
-
-window.forceToday = forceToday;
-window.chMonth = chMonth;
-window.goToday = goToday;
-window.chYear = chYear;
-window.goYear = goYear;
-window.toggleDay = toggleDay;
-window.stTab = stTab;
-window.exportJSONData = exportJSONData;
-window.exportICS = exportICS;
-window.sw = sw;
-
-renderAll();
-document.getElementById('sync-lbl').textContent = 'Connecté ✓';
+initPhotos(); // async — découvre les photos en arrière-plan
+initSplash();renderAll();
+document.getElementById('sync-lbl').textContent='Connecté ✓';
 </script>
 </body>
 </html>
