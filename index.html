@@ -43,13 +43,15 @@
         @keyframes splashBounce{0%{opacity:0;transform:scale(.3)}50%{transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
         @keyframes dotPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
 
-        /* ── PHOTO BANNER ── */
-        .photo-banner{width:calc(100% + 40px);margin:-20px -20px 20px -20px;height:200px;border-radius:0 0 20px 20px;overflow:hidden;position:relative;background:#2c2c3a}
-        .photo-banner img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease}
-        .photo-banner img.loaded{opacity:1}
-        .photo-banner .photo-gradient{position:absolute;inset:0;background:linear-gradient(to top,var(--app-bg) 0%,transparent 50%)}
-        .photo-banner .photo-title{position:absolute;bottom:14px;left:20px;right:20px;font-size:22px;font-weight:700;color:var(--text);text-shadow:0 1px 8px rgba(0,0,0,.15)}
-        .photo-banner .no-photo{display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);font-size:50px}
+        /* ── PHOTO FOND ── */
+        #v-today{position:relative;overflow:hidden}
+        .photo-bg{position:absolute;top:0;left:0;right:0;height:55vh;z-index:0;pointer-events:none;overflow:hidden}
+        .photo-bg img{width:100%;height:100%;object-fit:cover;object-position:center center;opacity:0;transition:opacity .8s ease}
+        .photo-bg img.loaded{opacity:.18}
+        @media(prefers-color-scheme:dark){.photo-bg img.loaded{opacity:.15}}
+        .photo-bg .photo-fade{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,var(--app-bg) 95%)}
+        .photo-bg .no-photo{display:flex;align-items:center;justify-content:center;height:100%;font-size:60px;opacity:.12}
+        #v-today > *:not(.photo-bg){position:relative;z-index:1}
 
         .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:450px;height:calc(55px + var(--safe));background:var(--tab-bg);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border-top:.5px solid var(--border);display:flex;padding-bottom:var(--safe);z-index:999}
         .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:10px;font-weight:500;cursor:pointer}
@@ -113,7 +115,7 @@
         .print-header{display:none;text-align:center;font-size:24px;font-weight:bold;margin-bottom:20px}
         @media print{
             *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-            .tabbar,.btn,.seg-ctrl,.cal-nav button,h1,.version-tag,.sync-info,.hero,.export-section,.photo-banner,.splash{display:none!important}
+            .tabbar,.btn,.seg-ctrl,.cal-nav button,h1,.version-tag,.sync-info,.hero,.export-section,.photo-bg,.splash{display:none!important}
             body,.app{background:white!important;box-shadow:none!important;padding:0!important;color:black!important}
             .view{display:none!important;padding:0!important}.view.on{display:block!important}
             .card{border:none!important;box-shadow:none!important;margin:0!important;padding:0!important;break-inside:avoid}
@@ -141,13 +143,13 @@
 
     <!-- ══ ACCUEIL ══ -->
     <div id="v-today" class="view on">
-        <div class="photo-banner" id="photo-banner">
+        <div class="photo-bg" id="photo-bg">
             <div class="no-photo" id="no-photo">👦🏻👧🏼</div>
             <img id="banner-img" alt="">
-            <div class="photo-gradient"></div>
-            <div class="photo-title">Pierre & Élise</div>
+            <div class="photo-fade"></div>
         </div>
-        <div class="version-tag">v1.2 — Photos auto</div>
+        <h1 style="text-align:center">Pierre & Élise</h1>
+        <div class="version-tag">v1.3 — Photos auto</div>
         <div class="hero">
             <div class="hero-date" id="t-date"></div>
             <div class="circle" id="t-circle"></div>
@@ -295,6 +297,7 @@ function applyPhoto(photo) {
     const bannerImg = document.getElementById('banner-img');
     const noPhoto = document.getElementById('no-photo');
     if (bannerImg) {
+        bannerImg.classList.remove('loaded');
         bannerImg.onload = () => { bannerImg.classList.add('loaded'); if(noPhoto) noPhoto.style.display = 'none'; };
         bannerImg.src = photo;
     }
@@ -620,7 +623,7 @@ function sw(id,el){
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
     document.getElementById('v-'+id).classList.add('on');
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');
-    if(id==='today'){const p=getRandomPhoto();if(p){const img=document.getElementById('banner-img');img.classList.remove('loaded');applyPhoto(p)}}
+    if(id==='today') applyPhoto(getRandomPhoto());
 }
 
 function renderAll(){renderToday();renderCal();renderYear();renderStats();
