@@ -1,10 +1,10 @@
 {
-  "name": "Calendrier Garde Élise & Pierre",
-  "short_name": "É&P",
+  "name": "Garde Pierre & Élise",
+  "short_name": "P&É",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f2f2f7",
-  "theme_color": "#f2f2f7",
+  "background_color": "#1a1a2e",
+  "theme_color": "#AF52DE",
   "icons": [
     {
       "src": "icon.png",
