@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Garde Élise & Pierre</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        :root {
+            --app-bg:#f2f2f7; --text:#000; --muted:#8e8e93; --card:#fff;
+            --tab-bg:rgba(255,255,255,.85); --border:rgba(60,60,67,.29);
+            --papa:#34C759; --maman:#AF52DE; --papa-bg:rgba(52,199,89,.12); --maman-bg:rgba(175,82,222,.12);
+            --ferie:#FF9500; --exception:#FF3B30;
+            --seg:rgba(118,118,128,.12); --seg-on:#fff; --safe:env(safe-area-inset-bottom,20px);
+        }
+        @media(prefers-color-scheme:dark){:root{
+            --app-bg:#000; --text:#fff; --muted:rgba(235,235,245,.6); --card:#1c1c1e;
+            --tab-bg:rgba(28,28,30,.85); --border:rgba(84,84,88,.65);
+            --papa-bg:rgba(48,209,88,.25); --maman-bg:rgba(191,90,242,.25);
+            --ferie:#FF9F0A; --seg:rgba(118,118,128,.24); --seg-on:#636366;
+        }}
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
+        body{margin:0;background:#e5e5ea;display:flex;justify-content:center}
+        .app{width:100%;max-width:450px;background:var(--app-bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:calc(75px + var(--safe))}
+        .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:450px;height:calc(55px + var(--safe));background:var(--tab-bg);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border-top:.5px solid var(--border);display:flex;padding-bottom:var(--safe);z-index:999}
+        .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:10px;font-weight:500;cursor:pointer}
+        .tab.on{color:var(--maman)} .tab-icon{font-size:22px;margin-bottom:2px}
+        .view{display:none;padding:20px;padding-top:max(30px,env(safe-area-inset-top));animation:fu .25s ease}
+        .view.on{display:block}
+        @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        h1{font-size:32px;font-weight:700;letter-spacing:-.5px;margin:0 0 18px}
+        .version-tag{text-align:center;font-size:11px;color:var(--muted);margin-top:-10px;margin-bottom:15px}
+        h2{font-size:20px;font-weight:600;margin:0 0 12px}
+        .card{background:var(--card);border-radius:12px;margin-bottom:18px;overflow:hidden}
+        .row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:.5px solid var(--border);font-size:15px}
+        .row:last-child{border-bottom:none}
+        .rl{display:flex;flex-direction:column;gap:3px} .rt{font-weight:500} .rs{font-size:12px;color:var(--muted)}
+        .tp{color:var(--papa);font-weight:700} .tm{color:var(--maman);font-weight:700}
+        .seg-ctrl{display:flex;background:var(--seg);border-radius:9px;padding:2px;margin-bottom:18px}
+        .seg-btn{flex:1;text-align:center;padding:6px 0;font-size:13px;font-weight:600;border-radius:7px;cursor:pointer;color:var(--text)}
+        .seg-btn.on{background:var(--seg-on);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+        .hero{text-align:center;padding:22px 10px}
+        .circle{width:150px;height:150px;border-radius:75px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;border:4px solid;transition:.2s}
+        .circle.papa{background:var(--papa-bg);color:var(--papa);border-color:var(--papa)}
+        .circle.maman{background:var(--maman-bg);color:var(--maman);border-color:var(--maman)}
+        .hero-date{font-size:16px;color:var(--muted);margin-bottom:20px}
+        .hero-reason{font-size:13px;color:var(--muted);margin-top:8px;padding:0 20px;line-height:1.5}
+        .btn{border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:600;width:100%;cursor:pointer;margin-top:8px;display:block;text-align:center}
+        .btn-solid{background:var(--maman);color:#fff} .btn-outline{background:transparent;color:var(--maman);border:1.5px solid var(--maman)}
+        .btn:active{opacity:.75} .btn-row{display:flex;gap:10px;margin-top:10px} .btn-row .btn{flex:1;margin-top:0}
+        .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+        .nav-btn{background:var(--seg);border:none;border-radius:50%;width:32px;height:32px;color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}
+        .dname{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:5px}
+        .day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;border-radius:50%;cursor:pointer;position:relative}
+        .day.empty{visibility:hidden}
+        .day.papa{background:var(--papa-bg);color:var(--papa)} .day.maman{background:var(--maman-bg);color:var(--maman)}
+        .day.today{outline:2.5px solid var(--text);outline-offset:-1px;font-weight:700}
+        .day.exc::after{content:'';position:absolute;bottom:2px;width:4px;height:4px;background:var(--exception);border-radius:50%}
+        .day.fer{box-shadow:inset 0 0 0 2px var(--ferie)}
+        .day.vac{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1.5px}
+        .yr-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+        .mm{background:var(--card);border-radius:12px;padding:10px}
+        .mm-title{font-size:12px;font-weight:600;text-align:center;margin-bottom:7px}
+        .mm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+        .mdn{font-size:8px;color:var(--muted);margin-bottom:2px}
+        .md{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:9px;border-radius:50%;position:relative}
+        .md.papa{background:var(--papa-bg);color:var(--papa)} .md.maman{background:var(--maman-bg);color:var(--maman)}
+        .md.today{outline:1.5px solid var(--text);outline-offset:-1px;font-weight:700}
+        .md.exc::after{content:'';position:absolute;bottom:1px;width:3px;height:3px;background:var(--exception);border-radius:50%}
+        .md.fer{box-shadow:inset 0 0 0 1.5px var(--ferie)}
+        .md.vac{text-decoration:underline;text-underline-offset:1.5px;text-decoration-thickness:1px}
+        .legend{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:11px;color:var(--muted);margin:14px 0 6px}
+        .leg{display:flex;align-items:center;gap:4px} .ldot{width:10px;height:10px;border-radius:50%}
+        .dist-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--seg);margin:12px 0 8px}
+        .dp{background:var(--papa)} .dm{background:var(--maman)}
+        .dist-lbl{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
+        .sync-info{text-align:center;font-size:11px;color:var(--muted);margin-top:16px}
+        .exp-input{width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--app-bg);color:var(--text);margin-top:4px}
+        .event-list{display:none;flex-direction:column;gap:6px;margin-top:16px;padding:12px;background:var(--app-bg);border-radius:8px;font-size:13px}
+        .event-item{display:flex;align-items:center;gap:8px;color:var(--text)}
+        .edot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+        .edot.fer{border:2px solid var(--ferie)}
+        .print-header{display:none;text-align:center;font-size:24px;font-weight:bold;margin-bottom:20px}
+        @media print{
+            *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+            .tabbar,.btn,.seg-ctrl,.cal-nav button,h1,.version-tag,.sync-info,.hero,.export-section{display:none!important}
+            body,.app{background:white!important;box-shadow:none!important;padding:0!important;color:black!important}
+            .view{display:none!important;padding:0!important}.view.on{display:block!important}
+            .card{border:none!important;box-shadow:none!important;margin:0!important;padding:0!important;break-inside:avoid}
+            #v-year.on .print-header{display:block!important}
+            #v-year.on .cal-nav h2{display:none!important}
+            #v-year.on .yr-grid{grid-template-columns:repeat(3,1fr)!important;gap:15px!important}
+            .md{border:1px solid #f2f2f7}
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div id="v-today" class="view on">
+        <h1>Aujourd'hui</h1>
+        <div class="version-tag">v1.0 — Élise & Pierre</div>
+        <div class="hero">
+            <div class="hero-date" id="t-date"></div>
+            <div class="circle" id="t-circle"></div>
+            <div class="hero-reason" id="t-reason"></div>
+        </div>
+        <button id="btn-force" class="btn btn-outline" onclick="forceToday()">Forcer un changement exceptionnel</button>
+        <h2 style="margin-top:22px">À venir</h2>
+        <div class="card" id="upcoming"></div>
+    </div>
+
+    <div id="v-calendar" class="view">
+        <h1>Mois</h1>
+        <div class="card" style="padding:14px 10px">
+            <div class="cal-nav">
+                <button class="nav-btn" onclick="chMonth(-1)">❮</button>
+                <h2 style="margin:0;font-size:17px" id="cal-title"></h2>
+                <button class="nav-btn" onclick="chMonth(1)">❯</button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div id="cal-events" class="event-list"></div>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-outline" onclick="goToday()">Ce mois-ci</button>
+            <button class="btn btn-outline" onclick="window.print()">Imprimer le mois</button>
+        </div>
+        <div class="legend">
+            <span class="leg"><span class="ldot" style="background:var(--papa)"></span>Papa</span>
+            <span class="leg"><span class="ldot" style="background:var(--maman)"></span>Maman</span>
+            <span class="leg"><span class="ldot" style="background:var(--exception)"></span>Modifié</span>
+            <span class="leg"><span class="ldot" style="border:2px solid var(--ferie);background:transparent"></span>Férié</span>
+            <span class="leg"><span style="text-decoration:underline;text-underline-offset:2px">Vacances</span></span>
+        </div>
+    </div>
+
+    <div id="v-year" class="view">
+        <h1>Année</h1>
+        <div class="print-header" id="print-yr-header">Calendrier de garde d'Élise & Pierre</div>
+        <div class="card" style="padding:13px 14px">
+            <div class="cal-nav" style="margin-bottom:0">
+                <button class="nav-btn" onclick="chYear(-1)">❮</button>
+                <h2 style="margin:0;font-size:19px" id="yr-title"></h2>
+                <button class="nav-btn" onclick="chYear(1)">❯</button>
+            </div>
+        </div>
+        <div class="yr-grid" id="yr-grid"></div>
+        <div class="legend">
+            <span class="leg"><span class="ldot" style="background:var(--papa)"></span>Papa</span>
+            <span class="leg"><span class="ldot" style="background:var(--maman)"></span>Maman</span>
+            <span class="leg"><span class="ldot" style="background:var(--exception)"></span>Modifié</span>
+            <span class="leg"><span class="ldot" style="border:2px solid var(--ferie);background:transparent"></span>Férié</span>
+            <span class="leg"><span style="text-decoration:underline;text-underline-offset:2px">Vacances</span></span>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-outline" onclick="goYear()">Année en cours</button>
+            <button class="btn btn-outline" onclick="window.print()">Imprimer l'année</button>
+        </div>
+    </div>
+
+    <div id="v-stats" class="view">
+        <h1>Statistiques</h1>
+        <div class="seg-ctrl">
+            <div class="seg-btn on" id="sb-m" onclick="stTab('m')">Mois</div>
+            <div class="seg-btn" id="sb-y" onclick="stTab('y')">Années</div>
+            <div class="seg-btn" id="sb-g" onclick="stTab('g')">Bilan</div>
+        </div>
+        <div id="sv-m"><div class="card" id="sl-m"></div></div>
+        <div id="sv-y" style="display:none"><div class="card" id="sl-y"></div></div>
+        <div id="sv-g" style="display:none"><div id="sl-g"></div></div>
+
+        <div class="card export-section" style="padding:16px;margin-top:20px">
+            <h3 style="margin-top:0;font-size:15px;text-align:center">Exporter l'historique</h3>
+            <div style="display:flex;gap:10px;margin-bottom:12px">
+                <div style="flex:1">
+                    <label style="font-size:11px;color:var(--muted);font-weight:600">DE</label>
+                    <input type="date" id="exp-start" class="exp-input">
+                </div>
+                <div style="flex:1">
+                    <label style="font-size:11px;color:var(--muted);font-weight:600">À</label>
+                    <input type="date" id="exp-end" class="exp-input">
+                </div>
+            </div>
+            <div class="btn-row" style="margin-top:0">
+                <button class="btn btn-solid" style="padding:10px;font-size:14px" onclick="exportJSONData()">Base JSON</button>
+                <button class="btn btn-outline" style="padding:10px;font-size:14px" onclick="exportICS()">iCal (.ics)</button>
+            </div>
+        </div>
+
+        <div class="sync-info">Données : <span id="sync-lbl">Initialisation…</span></div>
+    </div>
+
+    <div class="tabbar">
+        <div class="tab on" onclick="sw('today',this)"><span class="tab-icon">🏠</span>Aujourd'hui</div>
+        <div class="tab" onclick="sw('calendar',this)"><span class="tab-icon">📅</span>Mois</div>
+        <div class="tab" onclick="sw('year',this)"><span class="tab-icon">🗓️</span>Année</div>
+        <div class="tab" onclick="sw('stats',this)"><span class="tab-icon">📊</span>Stats</div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+/* ═══════════════════════════════════════════════════════
+   GARDE ÉLISE & PIERRE — V1.0
+   Jugement BENOIST / DEVERRIERE
+   ═══════════════════════════════════════════════════════ */
+
+// --- GESTION DES DROITS (LIEN MAGIQUE) ---
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.get('mode') === 'maman') {
+    localStorage.setItem('ep_admin', 'true');
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+const isAdmin = localStorage.getItem('ep_admin') === 'true';
+if(!isAdmin) document.getElementById('btn-force').style.display = 'none';
+
+let exceptions = JSON.parse(localStorage.getItem('ep_exceptions') || '{}');
+
+// --- FIREBASE ---
+// ⚠️ MÊME PROJET que garde-gabriel, collection séparée
+const firebaseConfig = {
+  apiKey: "AIzaSyDlqyLy8Uy2mXXRruuFJmEEX6vZ_InQ1JA",
+  authDomain: "garde-gabriel.firebaseapp.com",
+  projectId: "garde-gabriel",
+  storageBucket: "garde-gabriel.firebasestorage.app",
+  messagingSenderId: "781312886263",
+  appId: "1:781312886263:web:3a749e6ef8e52cc6f99af2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const docRef = doc(db, "garde_elise_pierre", "exceptions");
+
+onSnapshot(docRef, (snap) => {
+    if (snap.exists()) {
+        const remoteData = snap.data();
+        if (Object.keys(remoteData).length === 0 && Object.keys(exceptions).length > 0 && isAdmin) {
+            setDoc(docRef, exceptions).catch(e => console.error(e));
+        } else {
+            exceptions = remoteData;
+            localStorage.setItem('ep_exceptions', JSON.stringify(exceptions));
+            renderAll();
+            const lbl = document.getElementById('sync-lbl');
+            if(lbl) lbl.textContent = 'Synchronisé Cloud ⚡';
+        }
+    } else if (isAdmin) {
+        setDoc(docRef, exceptions).catch(e => console.error(e));
+    }
+});
+
+const saveEx = () => {
+    if(!isAdmin) return;
+    localStorage.setItem('ep_exceptions', JSON.stringify(exceptions));
+    setDoc(docRef, exceptions).catch(e => console.error("Erreur Firebase:", e));
+};
+
+const d2s = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const s2d = s => { const[y,m,j]=s.split('-').map(Number); return new Date(y,m-1,j,12,0,0) };
+
+/* ── VACANCES SCOLAIRES Zone C ── */
+const schoolHols = [
+    {n:"Toussaint",s:"2024-10-19",e:"2024-11-03",mid:"2024-10-26"},
+    {n:"Noël",s:"2024-12-21",e:"2025-01-05",mid:"2024-12-28"},
+    {n:"Hiver",s:"2025-02-15",e:"2025-03-02",mid:"2025-02-22"},
+    {n:"Printemps",s:"2025-04-12",e:"2025-04-27",mid:"2025-04-19"},
+    {n:"Été",s:"2025-07-05",e:"2025-08-31",summer:true},
+    {n:"Toussaint",s:"2025-10-18",e:"2025-11-02",mid:"2025-10-25"},
+    {n:"Noël",s:"2025-12-20",e:"2026-01-04",mid:"2025-12-27"},
+    {n:"Hiver",s:"2026-02-21",e:"2026-03-08",mid:"2026-02-28"},
+    {n:"Printemps",s:"2026-04-18",e:"2026-05-03",mid:"2026-04-25"},
+    {n:"Été",s:"2026-07-04",e:"2026-08-31",summer:true},
+    {n:"Toussaint",s:"2026-10-17",e:"2026-11-01",mid:"2026-10-24"},
+    {n:"Noël",s:"2026-12-19",e:"2027-01-03",mid:"2026-12-26"},
+    {n:"Hiver",s:"2027-02-20",e:"2027-03-07",mid:"2027-02-27"},
+    {n:"Printemps",s:"2027-04-17",e:"2027-05-02",mid:"2027-04-24"},
+    {n:"Été",s:"2027-07-06",e:"2027-08-31",summer:true},
+    {n:"Toussaint",s:"2027-10-23",e:"2027-11-07",mid:"2027-10-30"},
+    {n:"Noël",s:"2027-12-18",e:"2028-01-02",mid:"2027-12-25"},
+    {n:"Hiver",s:"2028-02-19",e:"2028-03-05",mid:"2028-02-26"},
+    {n:"Printemps",s:"2028-04-15",e:"2028-04-30",mid:"2028-04-22"},
+    {n:"Été",s:"2028-07-06",e:"2028-08-31",summer:true},
+    {n:"Toussaint",s:"2028-10-21",e:"2028-11-05",mid:"2028-10-28"},
+    {n:"Noël",s:"2028-12-23",e:"2029-01-07",mid:"2028-12-30"},
+    {n:"Hiver",s:"2029-02-17",e:"2029-03-04",mid:"2029-02-24"},
+    {n:"Printemps",s:"2029-04-14",e:"2029-04-29",mid:"2029-04-21"},
+    {n:"Été",s:"2029-07-06",e:"2029-08-31",summer:true},
+    {n:"Toussaint",s:"2029-10-20",e:"2029-11-04",mid:"2029-10-27"},
+    {n:"Noël",s:"2029-12-22",e:"2030-01-06",mid:"2029-12-29"},
+    {n:"Hiver",s:"2030-02-23",e:"2030-03-10",mid:"2030-03-02"},
+    {n:"Printemps",s:"2030-04-20",e:"2030-05-05",mid:"2030-04-27"},
+    {n:"Été",s:"2030-07-06",e:"2030-08-31",summer:true}
+];
+
+/* ── JOURS FÉRIÉS & CALCULS CALENDAIRES ── */
+
+function computeEaster(year) {
+    const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,
+          f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
+          i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+          mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
+    return new Date(year, mo-1, da, 12, 0, 0);
+}
+
+function getMothersDay(yr) {
+    let fdm = new Date(yr, 4, 31, 12, 0, 0);
+    while(fdm.getDay() !== 0) fdm.setDate(fdm.getDate() - 1);
+    const easter = computeEaster(yr);
+    const pentecost = new Date(easter); pentecost.setDate(easter.getDate() + 49);
+    if(d2s(fdm) === d2s(pentecost)) fdm.setDate(fdm.getDate() + 7);
+    return d2s(fdm);
+}
+
+function getFathersDay(yr) {
+    const fdp = new Date(yr, 5, 1, 12, 0, 0);
+    let sc = 0;
+    while(sc < 3) { if(fdp.getDay() === 0) sc++; if(sc < 3) fdp.setDate(fdp.getDate() + 1); }
+    return d2s(fdp);
+}
+
+function getPH(year) {
+    const easter = computeEaster(year);
+    const add = n => { const x = new Date(easter); x.setDate(x.getDate() + n); return d2s(x) };
+    return new Set([
+        `${year}-01-01`, `${year}-05-01`, `${year}-05-08`, `${year}-07-14`,
+        `${year}-08-15`, `${year}-11-01`, `${year}-11-11`, `${year}-12-25`,
+        add(1), add(39), add(50)
+    ]);
+}
+
+function getFerieName(ds) {
+    const y = parseInt(ds.split('-')[0]);
+    const easter = computeEaster(y);
+    const add = n => { const x = new Date(easter); x.setDate(x.getDate() + n); return d2s(x) };
+    const dict = {
+        [`${y}-01-01`]:"Jour de l'An", [`${y}-05-01`]:"Fête du Travail", [`${y}-05-08`]:"Victoire 1945",
+        [`${y}-07-14`]:"Fête Nationale", [`${y}-08-15`]:"Assomption", [`${y}-11-01`]:"Toussaint",
+        [`${y}-11-11`]:"Armistice 1918", [`${y}-12-25`]:"Noël",
+        [add(1)]:"Lundi de Pâques", [add(39)]:"Ascension", [add(50)]:"Lundi de Pentecôte"
+    };
+    return dict[ds] || null;
+}
+
+function getAscensionDate(yr) {
+    const easter = computeEaster(yr);
+    const asc = new Date(easter); asc.setDate(easter.getDate() + 39);
+    return d2s(asc);
+}
+
+function getEasterMonday(yr) {
+    const easter = computeEaster(yr);
+    const em = new Date(easter); em.setDate(easter.getDate() + 1);
+    return d2s(em);
+}
+
+function isoWeek(date) {
+    const tmp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayN = tmp.getUTCDay() || 7;
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - dayN);
+    const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+    return Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+}
+
+/* ══════════════════════════════════════════════
+   ALGORITHME DE GARDE — JUGEMENT BENOIST/DEVERRIERE
+   
+   Résidence habituelle : Maman
+   Périodes scolaires : Papa du jeudi soir (S impaires) au lundi matin (S paires)
+     → Papa a : Jeu(soir)/Ven/Sam/Dim des semaines impaires
+   Petites vacances :
+     Années impaires → 1ère moitié Papa
+     Années paires   → 2ème moitié Papa
+   Été :
+     Années paires   → 1ère quinzaine juil + 1ère quinzaine août Papa
+     Années impaires → 2ème quinzaine juil + 2ème quinzaine août Papa
+   Noël : 24 déc Maman (10h30→25 10h30), 25 déc Papa (10h30→26 10h30)
+   Ascension (week-end complet) + Lundi de Pâques → toujours Maman
+   Fête des Mères/Pères → parent concerné
+   Fériés/ponts adjacents → assimilés à la période d'accueil
+   ══════════════════════════════════════════════ */
+
+function getCustody(date) {
+    const ds = d2s(date);
+    const yr = date.getFullYear();
+    const dow = date.getDay(); // 0=Dim, 1=Lun...6=Sam
+    const t = date.getTime();
+    const weekNo = isoWeek(date);
+    const isOddWk = (weekNo % 2 !== 0);
+
+    // Déterminer si on est en vacances scolaires
+    let isVac = false;
+    for (const h of schoolHols) {
+        const startH = s2d(h.s);
+        const firstNight = new Date(startH); firstNight.setDate(firstNight.getDate() - 1);
+        const endH = s2d(h.e);
+        if (t >= firstNight.getTime() && t <= endH.getTime()) { isVac = true; break; }
+    }
+
+    const ph = getPH(yr);
+    const isFerie = ph.has(ds);
+
+    // 1. EXCEPTIONS MANUELLES
+    if (exceptions[ds]) {
+        return { who: exceptions[ds], why: "Exception manuelle", forced: true, vac: isVac, ferie: isFerie };
+    }
+
+    // 2. FÊTE DES MÈRES / PÈRES
+    if (ds === getMothersDay(yr)) return { who: "Maman", why: "Fête des Mères 💐", vac: isVac, ferie: isFerie };
+    if (ds === getFathersDay(yr)) return { who: "Papa", why: "Fête des Pères 👔", vac: isVac, ferie: isFerie };
+
+    // 3. NOËL SPÉCIAL (chaque année, pas d'alternance)
+    if (ds === `${yr}-12-24`) return { who: "Maman", why: "Réveillon de Noël (Maman 10h30→25 10h30)", vac: isVac, ferie: isFerie };
+    if (ds === `${yr}-12-25`) return { who: "Papa", why: "Noël (Papa 10h30→26 10h30)", vac: isVac, ferie: isFerie };
+
+    // 4. LUNDI DE PÂQUES → toujours Maman
+    if (ds === getEasterMonday(yr)) return { who: "Maman", why: "Lundi de Pâques (toujours Maman)", vac: isVac, ferie: true };
+
+    // 5. WEEK-END DE L'ASCENSION → toujours Maman (Jeu+Ven+Sam+Dim)
+    const ascDS = getAscensionDate(yr);
+    const ascDate = s2d(ascDS);
+    const ascFri = new Date(ascDate); ascFri.setDate(ascDate.getDate() + 1);
+    const ascSat = new Date(ascDate); ascSat.setDate(ascDate.getDate() + 2);
+    const ascSun = new Date(ascDate); ascSun.setDate(ascDate.getDate() + 3);
+    if (ds === ascDS || ds === d2s(ascFri) || ds === d2s(ascSat) || ds === d2s(ascSun)) {
+        return { who: "Maman", why: "Week-end de l'Ascension (toujours Maman)", vac: isVac, ferie: ds === ascDS };
+    }
+
+    // 6. VACANCES SCOLAIRES
+    for (const h of schoolHols) {
+        const startH = s2d(h.s);
+        const firstNight = new Date(startH); firstNight.setDate(firstNight.getDate() - 1);
+        const endH = s2d(h.e);
+        if (t < firstNight.getTime() || t > endH.getTime()) continue;
+
+        const startYear = parseInt(h.s.split('-')[0]);
+        const isOddYear = (startYear % 2 !== 0);
+
+        if (h.summer) {
+            // ÉTÉ : quinzaines de juillet et août
+            const mo = date.getMonth(); // 6=juillet, 7=août
+            const day = date.getDate();
+            const isFirstFortnight = (day <= 15);
+
+            let papaHas;
+            if (mo === 6) { // Juillet
+                // Années paires: Papa a 1ère quinzaine / Années impaires: Papa a 2ème quinzaine
+                papaHas = isOddYear ? !isFirstFortnight : isFirstFortnight;
+            } else if (mo === 7) { // Août
+                papaHas = isOddYear ? !isFirstFortnight : isFirstFortnight;
+            } else {
+                // Fin juin ou début sept dans la période vacances → traiter comme adjacent
+                papaHas = false;
+            }
+
+            const qLabel = isFirstFortnight ? "1ère quinzaine" : "2ème quinzaine";
+            const moLabel = mo === 6 ? "de Juillet" : mo === 7 ? "d'Août" : "";
+            return { who: papaHas ? "Papa" : "Maman", why: `Été (${qLabel} ${moLabel})`, vac: true, ferie: isFerie };
+
+        } else {
+            // PETITES VACANCES : 1ère moitié / 2ème moitié
+            const midH = s2d(h.mid);
+            const isFirst = (t < midH.getTime());
+            // Années impaires → 1ère moitié Papa / Années paires → 2ème moitié Papa
+            const papaHas = isOddYear ? isFirst : !isFirst;
+            return { who: papaHas ? "Papa" : "Maman", why: `Vacances ${h.n} (${isFirst ? '1ère' : '2ème'} moitié)`, vac: true, ferie: isFerie };
+        }
+    }
+
+    // 7. JOURS FÉRIÉS / PONTS (hors vacances)
+    // Lundi férié → si suit directement le week-end Papa (semaine impaire précédente)
+    if (dow === 1 && isFerie) {
+        // Lundi = début d'une nouvelle ISO semaine. La semaine précédente était impaire ?
+        const prevSunday = new Date(date); prevSunday.setDate(date.getDate() - 1);
+        const prevWeekNo = isoWeek(prevSunday);
+        if (prevWeekNo % 2 !== 0) {
+            // Suit directement le WE du papa → assimilé
+            return { who: "Papa", why: `Lundi férié (prolonge le week-end Papa)`, ferie: true, vac: isVac };
+        }
+    }
+
+    // Mercredi férié → si précède directement le jeudi Papa (même semaine impaire)
+    if (dow === 3 && isFerie && isOddWk) {
+        return { who: "Papa", why: `Mercredi férié (anticipe le week-end Papa)`, ferie: true, vac: isVac };
+    }
+
+    // Vendredi férié → si la veille (jeudi) était un férié (pont du vendredi après Ascension déjà géré)
+    // Jeudi férié en semaine paire → pont avec le week-end suivant si semaine suivante impaire?
+    // Simplifié: jeudi férié en semaine paire = pont potentiel si vendredi pont vers WE impaire
+    // On reste conservateur : seulement les cas explicites lundi/mercredi
+
+    // 8. EMPLOI DU TEMPS NORMAL (périodes scolaires)
+    // Papa : Jeu(soir)/Ven/Sam/Dim des semaines ISO impaires
+    if (isOddWk && (dow === 4 || dow === 5 || dow === 6 || dow === 0)) {
+        const dayNames = {0: "Dimanche", 4: "Jeudi", 5: "Vendredi", 6: "Samedi"};
+        return { who: "Papa", why: `S${weekNo} (impaire) — ${dayNames[dow]} chez Papa`, vac: isVac, ferie: isFerie };
+    }
+
+    // 9. DÉFAUT : MAMAN
+    return { who: "Maman", why: `Résidence habituelle`, vac: isVac, ferie: isFerie };
+}
+
+/* ── RENDU UI ── */
+
+function renderToday() {
+    const now = new Date();
+    const c = getCustody(now);
+    document.getElementById('t-date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const circ = document.getElementById('t-circle');
+    circ.className = 'circle ' + (c.who === 'Papa' ? 'papa' : 'maman');
+    circ.textContent = c.who;
+    document.getElementById('t-reason').textContent = c.why + (c.forced ? ' (modifié manuellement)' : '');
+
+    const ul = document.getElementById('upcoming');
+    ul.innerHTML = '';
+    let prev = c.who, found = 0;
+    for (let i = 1; i <= 120 && found < 5; i++) {
+        const d = new Date(now); d.setDate(now.getDate() + i);
+        const ci = getCustody(d);
+        if (ci.who !== prev) {
+            ul.innerHTML += `<div class="row"><div class="rl"><span class="rt">${d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</span><span class="rs">${ci.why}</span></div><span class="${ci.who === 'Papa' ? 'tp' : 'tm'}">${ci.who}</span></div>`;
+            prev = ci.who; found++;
+        }
+    }
+}
+
+let calDate = new Date(); calDate.setDate(1);
+const chMonth = d => { calDate.setMonth(calDate.getMonth() + d); renderCal() };
+const goToday = () => { calDate = new Date(); calDate.setDate(1); renderCal() };
+
+function renderCal() {
+    const yr = calDate.getFullYear(), mo = calDate.getMonth();
+    const title = new Date(yr, mo, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    document.getElementById('cal-title').textContent = title.charAt(0).toUpperCase() + title.slice(1);
+    const g = document.getElementById('cal-grid');
+    g.innerHTML = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d => `<div class="dname">${d}</div>`).join('');
+    const skip = (new Date(yr, mo, 1).getDay() || 7) - 1;
+    for (let i = 0; i < skip; i++) g.innerHTML += `<div class="day empty"></div>`;
+
+    const todayS = d2s(new Date());
+    let htmlEvents = '';
+
+    for (let d = 1; d <= new Date(yr, mo + 1, 0).getDate(); d++) {
+        const date = new Date(yr, mo, d, 12, 0, 0);
+        const ds = d2s(date);
+        const c = getCustody(date);
+        let cls = `day ${c.who === 'Papa' ? 'papa' : 'maman'}`;
+        if (ds === todayS) cls += ' today';
+        if (c.forced) cls += ' exc';
+        if (c.ferie) cls += ' fer';
+        if (c.vac) cls += ' vac';
+        g.innerHTML += `<div class="${cls}" onclick="toggleDay('${ds}')">${d}</div>`;
+
+        const phName = getFerieName(ds);
+        if (phName) {
+            htmlEvents += `<div class="event-item"><span class="edot fer"></span><span style="font-weight:600;width:30px;text-align:right;margin-right:4px">${d}</span> ${phName}</div>`;
+        }
+    }
+
+    const evContainer = document.getElementById('cal-events');
+    evContainer.innerHTML = htmlEvents;
+    evContainer.style.display = htmlEvents ? 'flex' : 'none';
+}
+
+let yrView = new Date().getFullYear();
+const chYear = d => { yrView += d; renderYear() };
+const goYear = () => { yrView = new Date().getFullYear(); renderYear() };
+
+function renderYear() {
+    document.getElementById('yr-title').textContent = yrView;
+    document.getElementById('print-yr-header').textContent = "Calendrier de garde d'Élise & Pierre - Année " + yrView;
+    const g = document.getElementById('yr-grid'); g.innerHTML = '';
+    const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+    const todayS = d2s(new Date());
+
+    for (let m = 0; m < 12; m++) {
+        let html = `<div class="mm"><div class="mm-title">${MONTHS[m]}</div><div class="mm-grid">`;
+        html += ['L','M','M','J','V','S','D'].map(d => `<div class="mdn">${d}</div>`).join('');
+        const skip = (new Date(yrView, m, 1).getDay() || 7) - 1;
+        for (let i = 0; i < skip; i++) html += `<div></div>`;
+        for (let d = 1; d <= new Date(yrView, m + 1, 0).getDate(); d++) {
+            const date = new Date(yrView, m, d, 12, 0, 0);
+            const ds = d2s(date);
+            const c = getCustody(date);
+            let cls = `md ${c.who === 'Papa' ? 'papa' : 'maman'}`;
+            if (ds === todayS) cls += ' today';
+            if (c.forced) cls += ' exc';
+            if (c.ferie) cls += ' fer';
+            if (c.vac) cls += ' vac';
+            html += `<div class="${cls}" onclick="toggleDay('${ds}')">${d}</div>`;
+        }
+        html += `</div></div>`; g.innerHTML += html;
+    }
+}
+
+function toggleDay(ds) {
+    if (!isAdmin) {
+        alert("Mode lecture seule.\nConsultation uniquement.");
+        return;
+    }
+    if (exceptions[ds]) {
+        if (confirm(`Annuler l'exception du ${ds} et revenir au calcul normal ?`)) { delete exceptions[ds]; saveEx(); renderAll(); return; }
+    }
+    const nw = getCustody(s2d(ds)).who === 'Papa' ? 'Maman' : 'Papa';
+    if (confirm(`Inverser exceptionnellement la garde le ${ds} pour ${nw} ?`)) { exceptions[ds] = nw; saveEx(); renderAll(); }
+}
+function forceToday() { toggleDay(d2s(new Date())) }
+
+function stTab(t) {
+    ['m','y','g'].forEach(x => {
+        document.getElementById('sb-' + x).classList.toggle('on', x === t);
+        document.getElementById('sv-' + x).style.display = x === t ? 'block' : 'none';
+    });
+}
+
+function computeStats() {
+    const cur = new Date().getFullYear();
+    const stats = { months: {}, years: {} };
+    [cur, cur + 1].forEach(yr => {
+        stats.years[yr] = { papa: 0, maman: 0, tot: 0 };
+        for (let m = 0; m < 12; m++) {
+            const key = `${yr}-${String(m + 1).padStart(2, '0')}`;
+            stats.months[key] = { papa: 0, maman: 0, tot: 0, date: new Date(yr, m, 1) };
+            for (let d = 1; d <= new Date(yr, m + 1, 0).getDate(); d++) {
+                const c = getCustody(new Date(yr, m, d, 12, 0, 0));
+                stats.years[yr].tot++; stats.months[key].tot++;
+                c.who === 'Papa' ? (stats.years[yr].papa++, stats.months[key].papa++) : (stats.years[yr].maman++, stats.months[key].maman++);
+            }
+        }
+    });
+    return stats;
+}
+
+function renderStats() {
+    const s = computeStats();
+    document.getElementById('sl-m').innerHTML = Object.keys(s.months).sort().map(k => {
+        const d = s.months[k]; const pp = Math.round(d.papa / d.tot * 100) || 0;
+        return `<div class="row"><span class="rt">${d.date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span><span style="font-size:13px"><span class="tp">${d.papa}j (${pp}%)</span> / <span class="tm">${d.maman}j (${100-pp}%)</span></span></div>`;
+    }).join('');
+    document.getElementById('sl-y').innerHTML = Object.keys(s.years).sort().map(yr => {
+        const d = s.years[yr]; const pp = Math.round(d.papa / d.tot * 100) || 0;
+        return `<div class="row"><span class="rt">Année ${yr}</span><div style="text-align:right"><div class="tp">Papa : ${d.papa}j (${pp}%)</div><div class="tm">Maman : ${d.maman}j (${100-pp}%)</div></div></div>`;
+    }).join('');
+    document.getElementById('sl-g').innerHTML = Object.keys(s.years).sort().map(yr => {
+        const d = s.years[yr]; const pp = Math.round(d.papa / d.tot * 100) || 0;
+        return `<div class="card"><div style="padding:16px"><h3 style="text-align:center;margin-top:0">Répartition ${yr}</h3><div class="dist-bar"><div class="dp" style="width:${pp}%"></div><div class="dm" style="width:${100-pp}%"></div></div><div class="dist-lbl"><span class="tp">Papa ${pp}%</span><span class="tm">Maman ${100-pp}%</span></div></div></div>`;
+    }).join('');
+}
+
+function exportJSONData() {
+    const startInput = document.getElementById('exp-start').value;
+    const endInput = document.getElementById('exp-end').value;
+    if (!startInput || !endInput) return alert("Veuillez sélectionner les dates.");
+    const start = new Date(startInput + 'T12:00:00');
+    const end = new Date(endInput + 'T12:00:00');
+    if (start > end) return alert("La date de fin doit être postérieure.");
+
+    const data = [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const ds = d2s(d); const c = getCustody(d); const wk = isoWeek(d);
+        data.push({
+            Date: ds,
+            Jour: d.toLocaleDateString('fr-FR', { weekday: 'long' }),
+            Semaine: wk % 2 === 0 ? "Paire" : "Impaire",
+            Garde: c.who,
+            Raison: c.why,
+            Vacances: !!c.vac,
+            Ferie: !!c.ferie,
+            Exception: !!c.forced
+        });
+    }
+    const a = document.createElement('a');
+    a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    a.download = `Export_EP_${startInput}_au_${endInput}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+}
+
+function exportICS() {
+    const yr = new Date().getFullYear();
+    let ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Garde Elise Pierre//FR\r\nCALSCALE:GREGORIAN\r\n";
+    let prev = null, blockStart = null;
+    for (let offset = 0; offset < 730; offset++) {
+        const d = new Date(yr, 0, 1, 12, 0, 0); d.setDate(d.getDate() + offset);
+        const ds = d2s(d); const c = getCustody(d);
+        if (c.who !== prev) {
+            if (prev && blockStart) ics += `BEGIN:VEVENT\r\nSUMMARY:E&P - ${prev}\r\nDTSTART;VALUE=DATE:${blockStart.replace(/-/g,'')}\r\nDTEND;VALUE=DATE:${ds.replace(/-/g,'')}\r\nEND:VEVENT\r\n`;
+            blockStart = ds; prev = c.who;
+        }
+    }
+    if (prev && blockStart) {
+        const end = new Date(yr, 0, 1, 12, 0, 0); end.setDate(end.getDate() + 730);
+        ics += `BEGIN:VEVENT\r\nSUMMARY:E&P - ${prev}\r\nDTSTART;VALUE=DATE:${blockStart.replace(/-/g,'')}\r\nDTEND;VALUE=DATE:${d2s(end).replace(/-/g,'')}\r\nEND:VEVENT\r\n`;
+    }
+    ics += "END:VCALENDAR\r\n";
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+    a.download = 'garde_elise_pierre.ics'; a.click();
+}
+
+function sw(id, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+    document.getElementById('v-' + id).classList.add('on');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    el.classList.add('on');
+}
+
+function renderAll() {
+    renderToday(); renderCal(); renderYear(); renderStats();
+    if (!document.getElementById('exp-start').value) {
+        const todayExp = new Date();
+        const nextYearExp = new Date(); nextYearExp.setFullYear(todayExp.getFullYear() + 1);
+        document.getElementById('exp-start').value = d2s(todayExp);
+        document.getElementById('exp-end').value = d2s(nextYearExp);
+    }
+}
+
+window.forceToday = forceToday;
+window.chMonth = chMonth;
+window.goToday = goToday;
+window.chYear = chYear;
+window.goYear = goYear;
+window.toggleDay = toggleDay;
+window.stTab = stTab;
+window.exportJSONData = exportJSONData;
+window.exportICS = exportICS;
+window.sw = sw;
+
+renderAll();
+document.getElementById('sync-lbl').textContent = 'Connecté ✓';
+</script>
+</body>
+</html>
