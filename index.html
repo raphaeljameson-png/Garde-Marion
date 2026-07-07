@@ -149,7 +149,7 @@
             <div class="photo-fade"></div>
         </div>
         <h1 style="text-align:center">Pierre & Élise</h1>
-        <div class="version-tag">v1.3 — Photos auto</div>
+        <div class="version-tag">v1.4 — Dates officielles + sync auto</div>
         <div class="hero">
             <div class="hero-date" id="t-date"></div>
             <div class="circle" id="t-circle"></div>
@@ -248,17 +248,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 /* ═══════════════════════════════════════════════════════
-   GARDE PIERRE & ÉLISE — V1.1
+   GARDE PIERRE & ÉLISE — V1.4
    Jugement BENOIST / DEVERRIERE
+   v1.4 : dates 2026-2027 corrigées (calendrier officiel Zone C),
+   sync auto data.education.gouv.fr, photos à noms libres.
+   Les exceptions manuelles (Firestore) sont inchangées.
    ═══════════════════════════════════════════════════════ */
 
 /* ══ PHOTOS — DÉTECTION AUTOMATIQUE ═════════════════════
-   Pour ajouter des photos :
-   1. Créer un dossier "photos/" à côté de ce fichier
-   2. Y glisser vos images nommées : 1.jpg, 2.jpg, 3.jpg…
-      (ou .png / .webp — l'app détecte automatiquement)
-   3. C'est tout ! Pas de code à modifier.
+   Pour ajouter des photos : glisser des images (.jpg/.png/.webp,
+   n'importe quel nom) dans le dossier "photos/" du dépôt GitHub.
+   L'app liste le dossier via l'API GitHub (repo public) ; en cas
+   d'échec (hors-ligne, quota), repli sur les noms 1.jpg, 2.jpg…
    ════════════════════════════════════════════════════════ */
+const PHOTOS_REPO = 'raphaeljameson-png/Garde-Marion';
 let PHOTOS = [];
 
 function tryLoadImage(src) {
@@ -271,15 +274,39 @@ function tryLoadImage(src) {
 }
 
 async function discoverPhotos() {
+    // 1) Cache récent (24 h) pour économiser l'API
+    try {
+        const cached = JSON.parse(localStorage.getItem('ep_photos_cache') || 'null');
+        const cachedAt = Number(localStorage.getItem('ep_photos_cache_at') || 0);
+        if (cached && cached.length && Date.now() - cachedAt < 24*3600*1000) {
+            PHOTOS = cached; return cached;
+        }
+    } catch(e) {}
+    // 2) Listing du dossier photos/ via l'API GitHub : accepte n'importe quel nom
+    try {
+        const res = await fetch(`https://api.github.com/repos/${PHOTOS_REPO}/contents/photos`);
+        if (res.ok) {
+            const items = await res.json();
+            const found = items
+                .filter(f => f.type === 'file' && /\.(jpe?g|png|webp)$/i.test(f.name))
+                .map(f => 'photos/' + encodeURIComponent(f.name));
+            if (found.length) {
+                PHOTOS = found;
+                localStorage.setItem('ep_photos_cache', JSON.stringify(found));
+                localStorage.setItem('ep_photos_cache_at', String(Date.now()));
+                return found;
+            }
+        }
+    } catch(e) { /* hors-ligne ou quota API : repli numéroté ci-dessous */ }
+    // 3) Repli : photos numérotées 1.jpg, 2.jpg… (s'arrête au premier trou)
     const found = [];
     for (let i = 1; i <= 50; i++) {
-        // Essaie jpg, png, webp en parallèle pour chaque numéro
         const results = await Promise.all(
             ['jpg','jpeg','png','webp'].map(ext => tryLoadImage(`photos/${i}.${ext}`))
         );
         const match = results.find(r => r !== null);
         if (match) found.push(match);
-        else break; // s'arrête au premier numéro manquant
+        else break;
     }
     PHOTOS = found;
     return found;
@@ -367,8 +394,11 @@ const saveEx = () => {
 const d2s = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const s2d = s => { const [y,m,j] = s.split('-').map(Number); return new Date(y, m-1, j, 12, 0, 0) };
 
-/* ── VACANCES SCOLAIRES Zone C ── */
-const schoolHols = [
+/* ── VACANCES SCOLAIRES Zone C ──
+   2024-2025 à 2026-2027 : conformes au calendrier officiel (vérifié le 07/07/2026
+   sur data.education.gouv.fr). 2027-2028 et au-delà : PRÉVISIONNEL, non publié —
+   remplacé automatiquement par la synchronisation officielle (syncSchoolCal). */
+const DEFAULT_SCHOOL_HOLS = [
     {n:"Toussaint",s:"2024-10-19",e:"2024-11-03",mid:"2024-10-26"},
     {n:"Noël",s:"2024-12-21",e:"2025-01-05",mid:"2024-12-28"},
     {n:"Hiver",s:"2025-02-15",e:"2025-03-02",mid:"2025-02-22"},
@@ -381,9 +411,9 @@ const schoolHols = [
     {n:"Été",s:"2026-07-04",e:"2026-08-31",summer:true},
     {n:"Toussaint",s:"2026-10-17",e:"2026-11-01",mid:"2026-10-24"},
     {n:"Noël",s:"2026-12-19",e:"2027-01-03",mid:"2026-12-26"},
-    {n:"Hiver",s:"2027-02-20",e:"2027-03-07",mid:"2027-02-27"},
-    {n:"Printemps",s:"2027-04-17",e:"2027-05-02",mid:"2027-04-24"},
-    {n:"Été",s:"2027-07-06",e:"2027-08-31",summer:true},
+    {n:"Hiver",s:"2027-02-06",e:"2027-02-21",mid:"2027-02-13"},
+    {n:"Printemps",s:"2027-04-03",e:"2027-04-18",mid:"2027-04-10"},
+    {n:"Été",s:"2027-07-03",e:"2027-08-31",summer:true},
     {n:"Toussaint",s:"2027-10-23",e:"2027-11-07",mid:"2027-10-30"},
     {n:"Noël",s:"2027-12-18",e:"2028-01-02",mid:"2027-12-25"},
     {n:"Hiver",s:"2028-02-19",e:"2028-03-05",mid:"2028-02-26"},
@@ -400,6 +430,47 @@ const schoolHols = [
     {n:"Printemps",s:"2030-04-20",e:"2030-05-05",mid:"2030-04-27"},
     {n:"Été",s:"2030-07-06",e:"2030-08-31",summer:true}
 ];
+let schoolHols = JSON.parse(localStorage.getItem('ep_school_holidays') || 'null') || DEFAULT_SCHOOL_HOLS;
+
+/* ── SYNC CALENDRIER SCOLAIRE ZONE C (data.education.gouv.fr) ──
+   Convention API (vérifiée 07/2026) : start_date = 1er jour des vacances,
+   end_date = jour de la reprise. Convention moteur : s = samedi (1er jour),
+   e = veille de la reprise, mid = s + 7.
+   IMPORTANT : ne touche QUE les dates de vacances. Les exceptions manuelles
+   (Firestore / ep_exceptions) ne sont jamais lues ni écrites ici. */
+async function syncSchoolCal(){
+    const last=localStorage.getItem('ep_school_last_sync');const now=Date.now();
+    if(last&&now-last<7*24*3600*1000) return 'cached';
+    try{
+        const url="https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records?"
+            +"where="+encodeURIComponent('zones="Zone C" and location="Paris" and start_date>="2024-08-01"')
+            +"&select=description,start_date,end_date,population&order_by=start_date&limit=60";
+        const res=await fetch(url);
+        const data=await res.json();
+        if(!data.results||!data.results.length) return false;
+        const plusJ=(x,n)=>{const d=s2d(x);d.setDate(d.getDate()+n);return d2s(d)};
+        const toSat=x=>{const d=s2d(x);if(d.getDay()===5)d.setDate(d.getDate()+1);return d2s(d)}; // si vendredi (fin des cours) → samedi
+        const api=[];
+        data.results.forEach(r=>{
+            if(r.population==='Enseignants') return; // dates élèves uniquement
+            const desc=r.description||'',sd=(r.start_date||'').slice(0,10),ed=(r.end_date||'').slice(0,10);
+            if(!sd) return;
+            if(desc.indexOf('Pont')===0) return; // l'Ascension a sa propre règle dans le moteur
+            if(desc==="Début des Vacances d'Été"){ api.push({n:"Été",s:toSat(sd),e:sd.slice(0,4)+"-08-31",summer:true,prov:true}); return; }
+            if(desc==="Vacances d'Été"){ api.push({n:"Été",s:toSat(sd),e:sd.slice(0,4)+"-08-31",summer:true}); return; }
+            const m=desc.match(/Toussaint|Noël|Hiver|Printemps/);
+            if(m&&ed){ const s=toSat(sd); api.push({n:m[0],s:s,e:plusJ(ed,-1),mid:plusJ(s,7)}); }
+        });
+        const clean=api.filter(a=>!a.prov||!api.some(b=>b.n==="Été"&&!b.prov&&Math.abs(s2d(b.s)-s2d(a.s))<45*86400000));
+        if(clean.length<4) return false; // réponse anormale : on ne touche à rien
+        const covered=h=>clean.some(a=>a.n===h.n&&Math.abs(s2d(a.s)-s2d(h.s))<45*86400000);
+        const merged=clean.concat(DEFAULT_SCHOOL_HOLS.filter(h=>!covered(h))).sort((a,b)=>a.s.localeCompare(b.s));
+        schoolHols=merged;
+        localStorage.setItem('ep_school_holidays',JSON.stringify(merged));
+        localStorage.setItem('ep_school_last_sync',String(now));
+        return 'updated';
+    }catch(e){return false}
+}
 
 /* ── CALENDAIRE ── */
 
@@ -636,6 +707,8 @@ window.stTab=stTab;window.exportJSONData=exportJSONData;window.exportICS=exportI
 initPhotos(); // async — découvre les photos en arrière-plan
 initSplash();renderAll();
 document.getElementById('sync-lbl').textContent='Connecté ✓';
+// Sync du calendrier scolaire officiel (hebdomadaire, silencieuse)
+syncSchoolCal().then(r=>{ if(r==='updated') renderAll(); });
 </script>
 </body>
 </html>
